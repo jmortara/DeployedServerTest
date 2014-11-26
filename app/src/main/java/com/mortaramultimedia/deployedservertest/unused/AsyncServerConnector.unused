@@ -1,0 +1,246 @@
+/*
+package com.mortaramultimedia.deployedservertest;
+
+
+import android.os.AsyncTask;
+import android.util.Log;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
+
+public class AsyncServerConnector
+{
+    private static final String TAG = "AsyncServerActivity";
+
+	private ServerActivity serverActivity;
+	private ServerTask serverTask;
+
+	// getters
+	public ServerActivity getServerActivity() { return serverActivity; }
+	public ServerTask getServerTask() { return serverTask; }
+
+    // constructor
+    public AsyncServerConnector( ServerActivity s )
+    {
+		Log.d(TAG, "AsyncServerConnector constructor");
+
+		serverActivity = s;
+
+		if ( serverTask == null )
+		{
+			serverTask = new ServerTask( this );
+			serverTask.execute();
+		}
+
+    }
+
+	public void sendAsyncMessage(String msg)
+	{
+		Log.d(TAG, "sendAsyncMessage");
+		if ( serverTask != null)
+		{
+			serverTask.sendMessage( msg );
+		}
+	}
+
+	public void handleIncomingAsyncMessage(String msg)
+	{
+		Log.d(TAG, "handleIncomingAsyncMessage");
+		if ( serverActivity != null)
+		{
+			serverActivity.handleIncomingMessage(msg);
+		}
+	}
+
+
+    private class ServerTask extends AsyncTask<Void, Integer, Integer>
+    {
+		private AsyncServerConnector asyncServerConnector;
+		private Socket s;
+		private PrintWriter s_out;
+		private BufferedReader s_in;
+		private String HOST = "mortaramultimedia.com";
+		private int PORT = 4000;
+
+		// constructor
+        ServerTask( AsyncServerConnector asc )
+        {
+            Log.d(TAG, "ServerTask constructor");
+
+			this.asyncServerConnector = asc;
+        }
+
+        @Override
+        protected Integer doInBackground(Void... unused)
+        {
+			s = new Socket();
+			s_out = null;
+			s_in = null;
+
+			try
+			{
+				Log.d(TAG, "Attempting to connect to " + HOST + " " + PORT);
+				try
+				{
+					s.connect(new InetSocketAddress(HOST, PORT));
+				}
+				//Host not found
+				catch (UnknownHostException e)
+				{
+					System.err.println("Don't know about host : " + HOST);
+					System.exit(1);
+					s_out.close();
+					try
+					{
+						s_in.close();
+					}
+					catch (IOException e1)
+					{
+						e1.printStackTrace();
+					}
+					try
+					{
+						s.close();
+					}
+					catch (IOException e1)
+					{
+						e1.printStackTrace();
+					}
+				}
+				catch (SecurityException e)
+				{
+					Log.d(TAG, "SecurityException: " + e.getMessage());
+					e.printStackTrace();
+				}
+				catch (IOException e)
+				{
+					Log.d(TAG, "IOException: " + e.getMessage());
+					e.printStackTrace();
+				}
+
+				if ( s.isConnected() )
+				{
+					Log.d(TAG, "Connected.");
+
+					// create writer for socket
+					try
+					{
+						if ( s_out == null )
+						{
+							s_out = new PrintWriter( s.getOutputStream(), true);
+						}
+					}
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
+					//Send inirial message to server
+					sendMessage( "Client says hello." );
+
+					//reader for socket
+					try
+					{
+						if (s_in == null)
+						{
+							s_in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+						}
+					}
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
+
+					//Get response from server
+					String response;
+					if (s_in != null)
+					{
+						try
+						{
+							while ((response = s_in.readLine()) != null)
+							{
+								Log.d(TAG, "Server message: " + response );
+								//asyncServerConnector.handleIncomingAsyncMessage( response );
+							}
+							return 2;
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+					}
+
+				}
+				else
+				{
+					Log.d(TAG, "Not connected.");
+				}
+
+			}
+			catch (Error e)
+			{
+				e.printStackTrace();
+			}
+
+
+
+			// other stuff? close?
+			Log.d(TAG, "Continuing...");
+			if (s_out != null)
+			{
+				s_out.close();
+			}
+			if (s_in != null)
+			{
+				try
+				{
+					s_in.close();
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
+			try
+			{
+				s.close();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+
+			return new Integer( 1 );
+        }
+
+		protected void sendMessage(String msg)
+		{
+			Log.d(TAG, "sendMessage: " + s.isConnected() + ", " + s_out.toString());
+			if ( s.isConnected() )
+			{
+				if (s_out != null)
+				{
+					s_out.println( msg );
+				}
+			}
+		}
+
+		@Override
+        protected void onProgressUpdate(Integer... progress)
+        {
+            // Log.d(TAG, "onProgressUpdate: " + progress);
+        }
+
+		@Override
+        protected void onPostExecute(Integer result)
+        {
+            String str = "onPostExecute: " + result;
+            Log.d(TAG, str);
+        }
+    } // end inner class
+}
+*/

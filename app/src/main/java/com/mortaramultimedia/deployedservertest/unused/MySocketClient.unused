@@ -1,0 +1,70 @@
+/*
+package com.mortaramultimedia.deployedservertest;
+//java socket client example - see http://www.binarytides.com/java-socket-programming-tutorial/
+import java.io.*;
+import java.net.*;
+ 
+public class MySocketClient
+{
+
+
+    public void init() throws IOException
+    {
+        Socket s;
+        PrintWriter s_out;
+        BufferedReader s_in;
+        String HOST = "mortaramultimedia.com";
+       int PORT = 4000;
+
+        System.out.println("MySocketClient init.");
+
+        s = new Socket();
+	    s_out = null;
+	    s_in = null;
+         
+        try
+        {
+        	System.out.println("Attempting to connect.");
+	        s.connect(new InetSocketAddress(HOST, PORT));
+	        System.out.println("Connected");
+	             
+	        //writer for socket
+            s_out = new PrintWriter( s.getOutputStream(), true);
+            //reader for socket
+            s_in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+        }
+         
+        //Host not found
+        catch (UnknownHostException e)
+        {
+            System.err.println("Don't know about host : " + HOST);
+            System.exit(1);
+            s_out.close();
+            s_in.close();
+            s.close();
+        }
+         
+        //Send message to server
+	    String message = "client says hello";
+	    s_out.println( message );
+	             
+	    System.out.println("Message send");
+	         
+	    //Get response from server
+	    String response;
+	    while ((response = s_in.readLine()) != null)
+	    {
+	        System.out.println( response );
+	    }
+        s_out.close();
+        s_in.close();
+        s.close();
+    }
+//    private void close() throws IOException
+//    {
+//    	s_out.close();
+//    	s_in.close();
+//    	s.close();
+//    }
+}
+*/
