@@ -25,6 +25,10 @@ public class ServerActivity extends Activity
 {
 	private static final String TAG = "ServerActivity";
 
+	//message prefixes
+	public static final String ECHO = "echo:";
+	public static final String MESSAGE_PLAYER_PORT = "messagePlayer_port_";
+
 	private ServerTask serverTask;
 
 	private Button connectButton;
@@ -232,7 +236,7 @@ public class ServerActivity extends Activity
 						e.printStackTrace();
 					}
 					//Send inirial message to server
-					sendMessage( "Client says hello." );
+					sendMessage( "echo:Client says hello." );
 
 					//reader for socket
 					try
