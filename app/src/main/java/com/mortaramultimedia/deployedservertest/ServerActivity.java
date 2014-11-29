@@ -26,8 +26,12 @@ public class ServerActivity extends Activity
 	private static final String TAG = "ServerActivity";
 
 	//message prefixes
-	public static final String ECHO = "echo:";
-	public static final String MESSAGE_PLAYER_PORT = "messagePlayer_port_";
+	public static final String ECHO 					= "echo:";
+	public static final String GET_OPPONENT_PORTS 		= "getOpponentPorts:";
+	public static final String MESSAGE_PLAYER_PORT 		= "messagePlayer_port_";
+	public static final String SELECT_OPPONENT_PORT 	= "selectOpponent_port_";
+	public static final String MESSAGE_OPPONENT 		= "messageOpponent:";
+	public static final String SEND_NEW_CURRENT_SCORE	= "sendNewCurrentScore:";
 
 	private ServerTask serverTask;
 
@@ -111,23 +115,63 @@ public class ServerActivity extends Activity
 		outgoingText.setText( "" );
 	}
 
-    public void handleSendButtonClick(View view) throws IOException
+    public void handleDoneButtonClick(View view) throws IOException
 	{
-		Log.d(TAG, "handleSendButtonClick");
-
+		Log.d(TAG, "handleDoneButtonClick");
 		hideSoftKeyboard();
+	}
 
-		if ( serverTask != null && Model.connected )
+    public void handleEchoButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleEchoButtonClick");
+		hideSoftKeyboard();
+		String msg = outgoingText.getText().toString();
+		serverTask.sendOutgoingMessageWithPrefix( ECHO, msg );
+    }
+
+    public void handleGetOpponentsButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleGetOpponentsButtonClick");
+		hideSoftKeyboard();
+		String msg = outgoingText.getText().toString();
+		serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_PORTS, null );
+    }
+
+    public void handleSelectOpponentButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleSelectOpponentButtonClick");
+		hideSoftKeyboard();
+		String msg = outgoingText.getText().toString();
+		serverTask.sendOutgoingMessageWithPrefix( SELECT_OPPONENT_PORT, msg );
+    }
+
+    public void handleMessageOpponentButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleMessageOpponentButtonClick");
+		hideSoftKeyboard();
+		String msg = outgoingText.getText().toString();
+		serverTask.sendOutgoingMessageWithPrefix( MESSAGE_OPPONENT, msg );
+    }
+
+    public void handleSendNewScoreOfButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleSendNewScoreOfButtonClick");
+		hideSoftKeyboard();
+		String msg = outgoingText.getText().toString();
+		Integer newScore;
+		try
 		{
-			String msg = outgoingText.getText().toString();
-			Log.d(TAG, "handleSendButtonClick: entered outgoing text is: " + msg);
-			serverTask.sendMessage( msg );
+			newScore = Integer.parseInt( msg );
 		}
-		else
+		catch ( Error e )
 		{
-			Log.d(TAG, "handleSendButtonClick: not connected" );
+			// just substitute an incremented score if the conversion was invalid
+			newScore = Model.score + 1;
 		}
 
+		Model.score = newScore;
+
+		serverTask.sendOutgoingMessageWithPrefix( SEND_NEW_CURRENT_SCORE, Model.score.toString() );
     }
 
 	private void hideSoftKeyboard()
@@ -236,7 +280,7 @@ public class ServerActivity extends Activity
 						e.printStackTrace();
 					}
 					//Send inirial message to server
-					sendMessage( "echo:Client says hello." );
+					sendOutgoingMessageWithPrefix( ECHO, "Client says hello." );
 
 					//reader for socket
 					try
@@ -336,6 +380,73 @@ public class ServerActivity extends Activity
 					s_out.println( msg );
 				}
 			}
+		}
+
+		public void sendOutgoingMessageWithPrefix( String prefix, String msg )
+		{
+			Log.d(TAG, "sendOutgoingMessageWithPrefix: request from user: " + prefix + ", " + msg);
+
+			String completeMessageToServer = "";
+
+			if ( serverTask == null || !Model.connected )
+			{
+				Log.d(TAG, "sendOutgoingMessageWithPrefix: not connected");
+				return;
+			}
+
+			/*
+				public static final String ECHO 				= "echo:";
+				public static final String GET_OPPONENT_PORTS 	= "getOpponentPorts:";
+				public static final String MESSAGE_PLAYER_PORT 	= "messagePlayer_port_";
+				public static final String SELECT_OPPONENT_PORT = "selectOpponent_port_";
+				public static final String MESSAGE_OPPONENT 	= "messageOpponent:";
+			 */
+
+			// if connected (switch statement was not allowed by Java compiler for some reason)
+			else
+			{
+				if ( prefix.equals( ECHO ) )
+				{
+					completeMessageToServer = prefix + msg;
+				}
+				else if ( prefix.equals( GET_OPPONENT_PORTS ) )
+				{
+					completeMessageToServer = prefix;
+				}
+				else if ( prefix.equals( MESSAGE_PLAYER_PORT ) )
+				{
+					completeMessageToServer = "";							// ex: 'messagePlayer_port_1234:hello other player' //TODO: won't work. need multiple input fields to handle this case
+				}
+				else if ( prefix.equals( SELECT_OPPONENT_PORT ) )
+				{
+					completeMessageToServer = prefix + msg + ":";			// ex: 'selectOpponent_port_12345:'
+				}
+				else if ( prefix.equals( MESSAGE_OPPONENT ) )
+				{
+					completeMessageToServer = prefix + ":" + msg;			// ex: 'messageOpponent:hello'
+				}
+				else if ( prefix.equals( SEND_NEW_CURRENT_SCORE ) )
+				{
+					completeMessageToServer = prefix + msg;			// ex: 'sendNewCurrentScore:12'
+				}
+				else
+				{
+					Log.w( TAG, "sendOutgoingMessageWithPrefix: WARNING - unknown prefix. request was: "  + prefix + ", " + msg );
+					return;
+				}
+
+				Log.d( TAG, "sendOutgoingMessageWithPrefix: completeMessageToServer: " + completeMessageToServer );
+
+				// send the complete assembled message to the server
+				if ( s.isConnected() && completeMessageToServer.length() > 0 )
+				{
+					if (s_out != null)
+					{
+						s_out.println( completeMessageToServer );
+					}
+				}
+			}
+
 		}
 
 		@Override

@@ -42,7 +42,8 @@
         <Space
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="0.19" />
+            android:layout_weight="0.19"
+            />
 
         <TextView
             android:layout_width="wrap_content"
@@ -53,7 +54,7 @@
 
         <EditText
             android:id="@+id/outgoingText"
-            android:text="Type your outgoing message here"
+            android:text="Type your message here"
             android:editable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -64,6 +65,29 @@
             android:onClick="handleOutgoingTextClick"
             />
 
+        <Button
+            android:id="@+id/hideKeyboardButton"
+            android:text="Done"
+            android:layout_width="90dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:onClick="handleDoneButtonClick"
+            />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.19"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Choose Message Type Below"
+            />
+
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -71,22 +95,69 @@
             android:layout_gravity="center_horizontal">
 
             <Button
-                android:id="@+id/sendButton"
-                android:text="Send"
-                android:layout_width="wrap_content"
+                android:id="@+id/echoButton"
+                android:text="Echo"
+                android:layout_width="90dp"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/messageText"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
-                android:onClick="handleSendButtonClick"
+                android:onClick="handleEchoButtonClick"
+                />
+
+             <Button
+                android:id="@+id/getPlayersButton"
+                android:text="Get\nOpponents"
+                android:layout_width="130dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:onClick="handleGetOpponentsButtonClick"
+                />
+
+             <Button
+                android:id="@+id/selectOpponentButton"
+                android:text="Select\nOpponent"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:onClick="handleSelectOpponentButtonClick"
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal">
+
+            <Button
+                android:id="@+id/messageOpponentButton"
+                android:text="Message\nOpponent"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:onClick="handleMessageOpponentButtonClick"
+                />
+
+            <Button
+                android:id="@+id/sendMyNewScoreButton"
+                android:text="Send New\nScore of"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:onClick="handleSendNewScoreOfButtonClick"
                 />
 
             <Button
                 android:id="@+id/clearButton"
                 android:text="Clear"
-                android:layout_width="wrap_content"
+                android:layout_width="120dp"
                 android:layout_height="wrap_content"
-                android:layout_toRightOf="@+id/sendButton"
+                android:layout_toRightOf="@+id/messageOpponentButton"
                 android:onClick="handleClearButtonClick"
                 />
         </LinearLayout>

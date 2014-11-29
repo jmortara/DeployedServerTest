@@ -14,6 +14,7 @@ public class Model
 
 	public static String incomingMessage = "default";
 	public static Boolean connected = false;
+	public static Integer score = 0;
 
 	public static void setIncomingMessage( String msg )
 	{
