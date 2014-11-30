@@ -423,7 +423,7 @@ public class ServerActivity extends Activity
 				}
 				else if ( prefix.equals( MESSAGE_OPPONENT ) )
 				{
-					completeMessageToServer = prefix + ":" + msg;			// ex: 'messageOpponent:hello'
+					completeMessageToServer = prefix + msg;			// ex: 'messageOpponent:hello'
 				}
 				else if ( prefix.equals( SEND_NEW_CURRENT_SCORE ) )
 				{
