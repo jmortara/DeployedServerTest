@@ -26,12 +26,16 @@ public class ServerActivity extends Activity
 	private static final String TAG = "ServerActivity";
 
 	//message prefixes
-	public static final String ECHO 					= "echo:";
-	public static final String GET_OPPONENT_PORTS 		= "getOpponentPorts:";
-	public static final String MESSAGE_PLAYER_PORT 		= "messagePlayer_port_";
-	public static final String SELECT_OPPONENT_PORT 	= "selectOpponent_port_";
-	public static final String MESSAGE_OPPONENT 		= "messageOpponent:";
-	public static final String SEND_NEW_CURRENT_SCORE	= "sendNewCurrentScore:";
+	public static final String ECHO						= "/echo:";
+	public static final String SET_USERNAME				= "/setUsername:";
+	public static final String GET_USERNAME				= "/getUsername";
+	public static final String GET_OPPONENT_USERNAMES	= "/getOpponentUsernames";			// needs no colon or params
+	//public static final String GET_OPPONENT_PORTS			= "/getOpponentPorts";				//TODO // needs no colon or params
+	//public static final String MESSAGE_PLAYER_PORT		= "/messagePlayer_port_";			//TODO // must append colon
+	//public static final String SELECT_OPPONENT_PORT		= "/selectOpponent_port_";			//TODO // must append colon
+	public static final String SELECT_OPPONENT_USERNAME	= "/selectOpponentUsername:";		// must append colon
+	public static final String MESSAGE_OPPONENT 		= "/messageOpponent:";
+	public static final String SEND_NEW_CURRENT_SCORE	= "/sendNewCurrentScore:";
 
 	private ServerTask serverTask;
 
@@ -129,12 +133,29 @@ public class ServerActivity extends Activity
 		serverTask.sendOutgoingMessageWithPrefix( ECHO, msg );
     }
 
+    public void handleSetUsernameButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleSetUsernameButtonClick");
+		hideSoftKeyboard();
+		String msg = outgoingText.getText().toString();
+		serverTask.sendOutgoingMessageWithPrefix( SET_USERNAME, msg );
+    }
+
+    public void handleGetUsernameButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleGetUsernameButtonClick");
+		hideSoftKeyboard();
+		String msg = outgoingText.getText().toString();
+		serverTask.sendOutgoingMessageWithPrefix( GET_USERNAME, null );
+    }
+
     public void handleGetOpponentsButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleGetOpponentsButtonClick");
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
-		serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_PORTS, null );
+		//serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_PORTS, null );
+		serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_USERNAMES, null );
     }
 
     public void handleSelectOpponentButtonClick(View view) throws IOException
@@ -142,7 +163,8 @@ public class ServerActivity extends Activity
 		Log.d(TAG, "handleSelectOpponentButtonClick");
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
-		serverTask.sendOutgoingMessageWithPrefix( SELECT_OPPONENT_PORT, msg );
+		//serverTask.sendOutgoingMessageWithPrefix( SELECT_OPPONENT_PORT, msg );
+		serverTask.sendOutgoingMessageWithPrefix( SELECT_OPPONENT_USERNAME, msg );
     }
 
     public void handleMessageOpponentButtonClick(View view) throws IOException
@@ -409,25 +431,43 @@ public class ServerActivity extends Activity
 				{
 					completeMessageToServer = prefix + msg;
 				}
+				else if ( prefix.equals( SET_USERNAME ) )
+				{
+					completeMessageToServer = prefix + msg;
+				}
+				else if ( prefix.equals( GET_USERNAME ) )
+				{
+					completeMessageToServer = prefix;
+				}
+				else if ( prefix.equals( GET_OPPONENT_USERNAMES ) )
+				{
+					completeMessageToServer = prefix;
+				}
+				else if ( prefix.equals( SELECT_OPPONENT_USERNAME ) )
+				{
+					completeMessageToServer = prefix + msg;
+				}
+				/*
 				else if ( prefix.equals( GET_OPPONENT_PORTS ) )
 				{
 					completeMessageToServer = prefix;
 				}
-				else if ( prefix.equals( MESSAGE_PLAYER_PORT ) )
+				else if ( prefix.equals( MESSAGE_PLAYER_PORT ) )			//TODO: won't work. need multiple input fields to handle this case
 				{
-					completeMessageToServer = "";							// ex: 'messagePlayer_port_1234:hello other player' //TODO: won't work. need multiple input fields to handle this case
+					completeMessageToServer = "";							// ex: 'messagePlayer_port_1234:hello other player'
 				}
 				else if ( prefix.equals( SELECT_OPPONENT_PORT ) )
 				{
 					completeMessageToServer = prefix + msg + ":";			// ex: 'selectOpponent_port_12345:'
 				}
+				*/
 				else if ( prefix.equals( MESSAGE_OPPONENT ) )
 				{
-					completeMessageToServer = prefix + msg;			// ex: 'messageOpponent:hello'
+					completeMessageToServer = prefix + msg;					// ex: 'messageOpponent:hello'
 				}
 				else if ( prefix.equals( SEND_NEW_CURRENT_SCORE ) )
 				{
-					completeMessageToServer = prefix + msg;			// ex: 'sendNewCurrentScore:12'
+					completeMessageToServer = prefix + msg;					// ex: 'sendNewCurrentScore:12'
 				}
 				else
 				{

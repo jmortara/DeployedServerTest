@@ -17,16 +17,13 @@
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="50dp">
 
             <Button
                 android:id="@+id/connectButton"
                 android:layout_width="150dp"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:text="Connect"
-                android:layout_above="@+id/messageText"
-                android:layout_alignRight="@+id/messageText"
-                android:layout_alignEnd="@+id/messageText"
                 android:onClick="handleConnectButtonClick"
                 />
             
@@ -36,6 +33,22 @@
                 android:layout_height="30dp"
                 android:clickable="false"
                 />
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                >
+
+                <TextView
+                    android:id="@+id/userName"
+                    android:text="User:"
+                    android:editable="false"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
+
+            </LinearLayout>
 
         </LinearLayout>
 
@@ -58,22 +71,32 @@
             android:editable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
             android:minHeight="50dp"
             android:onClick="handleOutgoingTextClick"
             />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal">
 
         <Button
             android:id="@+id/hideKeyboardButton"
             android:text="Done"
             android:layout_width="90dp"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
             android:onClick="handleDoneButtonClick"
             />
+
+        <Button
+            android:id="@+id/clearButton"
+            android:text="Clear"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:onClick="handleClearButtonClick"
+            />
+    </LinearLayout>
 
         <Space
             android:layout_width="match_parent"
@@ -99,18 +122,38 @@
                 android:text="Echo"
                 android:layout_width="90dp"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
                 android:onClick="handleEchoButtonClick"
                 />
 
              <Button
-                android:id="@+id/getPlayersButton"
+                android:id="@+id/setUsernameButton"
+                android:text="Set\nUsername"
+                android:layout_width="130dp"
+                android:layout_height="wrap_content"
+                android:onClick="handleSetUsernameButtonClick"
+                />
+
+             <Button
+                android:id="@+id/getUsernameButton"
+                android:text="Get\nUsername"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:onClick="handleGetUsernameButtonClick"
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal">
+
+             <Button
+                android:id="@+id/getOpponentsButton"
                 android:text="Get\nOpponents"
                 android:layout_width="130dp"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
                 android:onClick="handleGetOpponentsButtonClick"
                 />
 
@@ -119,9 +162,15 @@
                 android:text="Select\nOpponent"
                 android:layout_width="120dp"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
                 android:onClick="handleSelectOpponentButtonClick"
+                />
+
+            <Button
+                android:id="@+id/messageOpponentButton"
+                android:text="Message\nOpponent"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:onClick="handleMessageOpponentButtonClick"
                 />
 
         </LinearLayout>
@@ -133,33 +182,13 @@
             android:layout_gravity="center_horizontal">
 
             <Button
-                android:id="@+id/messageOpponentButton"
-                android:text="Message\nOpponent"
-                android:layout_width="120dp"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:onClick="handleMessageOpponentButtonClick"
-                />
-
-            <Button
                 android:id="@+id/sendMyNewScoreButton"
-                android:text="Send New\nScore of"
+                android:text="Send New\nScore"
                 android:layout_width="120dp"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
                 android:onClick="handleSendNewScoreOfButtonClick"
                 />
 
-            <Button
-                android:id="@+id/clearButton"
-                android:text="Clear"
-                android:layout_width="120dp"
-                android:layout_height="wrap_content"
-                android:layout_toRightOf="@+id/messageOpponentButton"
-                android:onClick="handleClearButtonClick"
-                />
         </LinearLayout>
 
         <Space
