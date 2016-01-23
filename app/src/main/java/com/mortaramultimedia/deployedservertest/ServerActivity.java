@@ -46,10 +46,10 @@ public class ServerActivity extends Activity
 //	private String incomingMessage;
 
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_server);
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_server);
 
 		// UI refs
 		connectButton 		= (Button)   findViewById(R.id.connectButton);
@@ -58,7 +58,7 @@ public class ServerActivity extends Activity
 		connectedCheckBox 	= (CheckBox) findViewById(R.id.connectedCheckBox);
 
 		updateUI();
-    }
+	}
 
 	public void updateUI()
 	{
@@ -71,31 +71,31 @@ public class ServerActivity extends Activity
 	}
 
 /*
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.server, menu);
-        return true;
-    }
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.server, menu);
+		return true;
+	}
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+		if (id == R.id.action_settings) {
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
 */
 
-    public void handleConnectButtonClick(View view) throws IOException
+	public void handleConnectButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleConnectButtonClick");
 
-        // Start network tasks separate from the main UI thread
+		// Start network tasks separate from the main UI thread
 		if ( serverTask == null && !Model.connected )
 		{
 			serverTask = new ServerTask( this );
@@ -105,7 +105,7 @@ public class ServerActivity extends Activity
 		{
 			Log.d(TAG, "handleConnectButtonClick: not connected");
 		}
-    }
+	}
 
 	public void handleOutgoingTextClick(View view)
 	{
@@ -119,63 +119,63 @@ public class ServerActivity extends Activity
 		outgoingText.setText( "" );
 	}
 
-    public void handleDoneButtonClick(View view) throws IOException
+	public void handleDoneButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleDoneButtonClick");
 		hideSoftKeyboard();
 	}
 
-    public void handleEchoButtonClick(View view) throws IOException
+	public void handleEchoButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleEchoButtonClick");
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
 		serverTask.sendOutgoingMessageWithPrefix( ECHO, msg );
-    }
+	}
 
-    public void handleSetUsernameButtonClick(View view) throws IOException
+	public void handleSetUsernameButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleSetUsernameButtonClick");
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
 		serverTask.sendOutgoingMessageWithPrefix( SET_USERNAME, msg );
-    }
+	}
 
-    public void handleGetUsernameButtonClick(View view) throws IOException
+	public void handleGetUsernameButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleGetUsernameButtonClick");
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
 		serverTask.sendOutgoingMessageWithPrefix( GET_USERNAME, null );
-    }
+	}
 
-    public void handleGetOpponentsButtonClick(View view) throws IOException
+	public void handleGetOpponentsButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleGetOpponentsButtonClick");
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
 		//serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_PORTS, null );
 		serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_USERNAMES, null );
-    }
+	}
 
-    public void handleSelectOpponentButtonClick(View view) throws IOException
+	public void handleSelectOpponentButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleSelectOpponentButtonClick");
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
 		//serverTask.sendOutgoingMessageWithPrefix( SELECT_OPPONENT_PORT, msg );
 		serverTask.sendOutgoingMessageWithPrefix( SELECT_OPPONENT_USERNAME, msg );
-    }
+	}
 
-    public void handleMessageOpponentButtonClick(View view) throws IOException
+	public void handleMessageOpponentButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleMessageOpponentButtonClick");
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
 		serverTask.sendOutgoingMessageWithPrefix( MESSAGE_OPPONENT, msg );
-    }
+	}
 
-    public void handleSendNewScoreOfButtonClick(View view) throws IOException
+	public void handleSendNewScoreOfButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleSendNewScoreOfButtonClick");
 		hideSoftKeyboard();
@@ -194,7 +194,7 @@ public class ServerActivity extends Activity
 		Model.score = newScore;
 
 		serverTask.sendOutgoingMessageWithPrefix( SEND_NEW_CURRENT_SCORE, Model.score.toString() );
-    }
+	}
 
 	private void hideSoftKeyboard()
 	{
@@ -203,11 +203,11 @@ public class ServerActivity extends Activity
 		imm.hideSoftInputFromWindow(outgoingText.getWindowToken(), 0);
 	}
 
-    public void handleClearButtonClick(View view) throws IOException
+	public void handleClearButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleClearButtonClick");
 		clearOutgoingText();
-    }
+	}
 
 	/*
 	public void handleIncomingMessage( String msg )

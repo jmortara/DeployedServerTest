@@ -3,7 +3,7 @@ package com.mortaramultimedia.deployedservertest;
 import android.util.Log;
 
 /**
- * Created by jason on 11/26/2014.
+ * Created by Jason Mortara on 11/26/2014.
  */
 public class Model
 {
