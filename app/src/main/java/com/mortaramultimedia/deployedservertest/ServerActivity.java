@@ -12,13 +12,18 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.mortaramultimedia.deployedservertest.database.MySQLAccessTester;
+
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Properties;
 
 
 public class ServerActivity extends Activity
@@ -173,6 +178,25 @@ public class ServerActivity extends Activity
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
 		serverTask.sendOutgoingMessageWithPrefix( MESSAGE_OPPONENT, msg );
+	}
+
+	public void handleTestDatabaseButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleTestDatabaseButtonClick");
+		try
+		{
+			Properties dbProps = new Properties();
+
+			InputStream in = getBaseContext().getAssets().open("database.properties");
+			dbProps.load(in);
+
+			// once props are loaded, test the db with the values defined therein
+			MySQLAccessTester.test(dbProps);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public void handleSendNewScoreOfButtonClick(View view) throws IOException

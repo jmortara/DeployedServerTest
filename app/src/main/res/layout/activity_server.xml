@@ -182,12 +182,19 @@
             android:layout_gravity="center_horizontal">
 
             <Button
-                android:id="@+id/sendMyNewScoreButton"
+                android:id="@+id/testDatabaseButton"
+                android:text="Test DB"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:onClick="handleTestDatabaseButtonClick"
+                />
+
+            <Button
+                android:id="@+id/button"
                 android:text="Send New\nScore"
                 android:layout_width="120dp"
                 android:layout_height="wrap_content"
-                android:onClick="handleSendNewScoreOfButtonClick"
-                />
+                android:onClick="handleSendNewScoreOfButtonClick"/>
 
         </LinearLayout>
 
