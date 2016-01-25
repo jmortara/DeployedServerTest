@@ -560,6 +560,12 @@ public class ServerActivity extends Activity
 		@Override
 		protected Integer doInBackground(Void... unused)
 		{
+			// need to force wait for debugger to breakpoint in this thread
+			if(android.os.Debug.isDebuggerConnected())
+			{
+				android.os.Debug.waitForDebugger();
+			}
+
 			Log.d(TAG, "DatabaseTask: doInBackground: dbProps? " + Model.databaseProps.toString());
 			int testSucceeded = 0;
 			if (Model.databaseProps != null)

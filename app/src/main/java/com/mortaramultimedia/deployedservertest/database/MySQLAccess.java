@@ -55,39 +55,11 @@ public class MySQLAccess
 		Log.d(TAG, "MYSQLAccess: constructor. Properties: " + connectionStr);
 	}
 
-//	private void loadProperties()
-//	{
-//		Properties dbProps = new Properties();
-//		try
-//		{
-//			// load the database.properties file from the bundle
-//			dbProps.load(New FileInputStram("database.properties"));
-//
-//			Log.d(TAG, "MYSQLAccess: loadProperties: " + dbProps.getProperty())
-//		}
-//	}
-
   public void connectToDataBase() throws Exception
   {
 	try
 	{
-	  // this will load the MySQL driver, each DB has its own driver
-	  Class.forName("com.mysql.jdbc.Driver");
-	  // setup the connection with the DB.
-//	  connection = DriverManager.getConnection("jdbc:mysql://mysql.wordwolfgame.com:3306/wordwolfdb?user=jmortara&password=wordwolf99");
-
-		//get some of the properties we need from an external properties file in the resource bundle. use them for connecting. 
-//		 PropertyResourceBundle bundle = (PropertyResourceBundle) ResourceBundle.getBundle("database"); // i.e. the database.properties file
-//		 String JDBCDriver 		= bundle.getString("JDBCDriver");
-//		 String url 			= bundle.getString("url");
-//		 String port 			= bundle.getString("port");
-//		 String dbname 			= bundle.getString("dbname");
-//		 String user 			= bundle.getString("user");
-//		 String password 		= bundle.getString("password");
-		 
 		 Class.forName( JDBCDriver );	// this loads the defined JDBC class by name
-//		 connectionStr	= url + ":" + port + "/" + dbname + "?" + "user=" + user + "&password=" + password;
-		 
 		 connection = DriverManager.getConnection( connectionStr );
 
 		 Log.d(TAG, "connectToDataBase: CONNECTION SUCCESSFUL");
@@ -106,14 +78,6 @@ public class MySQLAccess
 	{
 		Log.w(TAG, "connectToDataBase: ERROR: " + e.getMessage());
 		throw e;
-
-
-
-
-
-
-
-
 	}
   }
 
