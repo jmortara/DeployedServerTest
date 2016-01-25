@@ -12,7 +12,7 @@ import java.util.Properties;
 
 /**
  * DatabaseTask - AsyncTask which handles server connections and messaging
- * Created by Jason Mortara on 1/24/2016.
+ * Created by Jason Mortara on 1/24/2016
  ****************************************************************************************/
 public class DatabaseAsyncTask extends AsyncTask<Void, Integer, Integer>
 {
