@@ -5,23 +5,19 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.mortaramultimedia.deployedservertest.Model;
-import com.mortaramultimedia.deployedservertest.ServerActivity;
 import com.mortaramultimedia.deployedservertest.interfaces.IAsyncTaskCompleted;
 
 import java.io.InputStream;
 import java.util.Properties;
 
-import messages.LoginMessage;
-
-
 /**
- * DatabaseTask - AsyncTask which handles server connections and messaging
+ * LoginAsyncTask - AsyncTask which handles logging the app user in
  * Created by Jason Mortara on 1/24/2016
  */
-public class DatabaseAsyncTask extends AsyncTask<Void, Integer, Integer>
+public class LoginAsyncTask extends AsyncTask<Void, Integer, Integer>
 {
 	// statics
-	private static final String TAG = "DatabaseTask";
+	private static final String TAG = "LoginAsyncTask";
 
 	// privates
 	private Activity activity = null;
@@ -29,9 +25,9 @@ public class DatabaseAsyncTask extends AsyncTask<Void, Integer, Integer>
 
 
 	// constructor
-	public DatabaseAsyncTask(Activity activity, IAsyncTaskCompleted caller)
+	public LoginAsyncTask(Activity activity, IAsyncTaskCompleted caller)
 	{
-		Log.d(TAG, "DatabaseTask constructor, called from " + activity.getLocalClassName());
+		Log.d(TAG, "LoginAsyncTask constructor, called from " + activity.getLocalClassName());
 
 		this.activity = activity;
 		this.taskCompleteCallbackObj = caller;
@@ -42,9 +38,15 @@ public class DatabaseAsyncTask extends AsyncTask<Void, Integer, Integer>
 	{
 		Log.d(TAG, "onPreExecute");
 		// called on thread init
-		readDatabaseProperties();
+		if (Model.databaseProps == null)
+		{
+			readDatabaseProperties();
+		}
 	}
 
+	/**
+	 * Read in DB props from bundle. Only nec if not already set into Model during app startup.
+	 */
 	private void readDatabaseProperties()
 	{
 		Log.d(TAG, "readDatabaseProperties");
@@ -78,39 +80,40 @@ public class DatabaseAsyncTask extends AsyncTask<Void, Integer, Integer>
 
 		Log.d(TAG, "doInBackground: dbProps? " + Model.databaseProps.toString());
 
-		int testSucceeded = 0;
+		int loginSucceeded = 0;
 
 		if (Model.databaseProps != null)
 		{
-			Log.d(TAG, "doInBackground: Attempting to test database");
+			Log.d(TAG, "doInBackground: Attempting database user login");
 			try
 			{
-				// first test the connection and run some queries
-				testSucceeded = MySQLAccessTester.test(Model.databaseProps);
+				// try a login	//TODO get this from input fields
+//				LoginMessage newLogin = new LoginMessage(1, "jason", "jason123", "jmortara@wordwolfgame.com");    //TODO: HARDCODED
+//				Model.userLogin = newLogin;
+				loginSucceeded = MySQLAccessTester.attemptLogin();
 			}
 			catch (Exception e)
 			{
 				e.printStackTrace();
-				testSucceeded = 0;
 			}
 		}
+
 		// store result of login attempt in Model
-		if(testSucceeded == 0)
+		if(loginSucceeded == 0)
 		{
-			Model.dbTestOK = false;
+			Model.loggedIn = false;
 		}
-		else Model.dbTestOK = true;
+		else Model.loggedIn = true;
 
-		Log.d(TAG, "doInBackground: DB test passed? " + Model.dbTestOK);
+		Log.d(TAG, "doInBackground: login succeeded? " + Model.loggedIn);
 
-		return testSucceeded;
+		return loginSucceeded;
 	}
-
 
 	@Override
 	protected void onProgressUpdate(Integer... progress)
 	{
-		 Log.d(TAG, "onProgressUpdate: " + progress);
+		Log.d(TAG, "onProgressUpdate: " + progress);
 	}
 
 	@Override
@@ -120,4 +123,5 @@ public class DatabaseAsyncTask extends AsyncTask<Void, Integer, Integer>
 		taskCompleteCallbackObj.onTaskCompleted();
 		Log.d(TAG, str);
 	}
-} // end class DatabaseAsyncTask
+
+} // end class LoginAsyncTask

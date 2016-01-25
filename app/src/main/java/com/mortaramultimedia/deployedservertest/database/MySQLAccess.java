@@ -46,10 +46,10 @@ public class MySQLAccess
 	{
 		Log.d(TAG, "MYSQLAccess: constructor.");
 		JDBCDriver 		= dbProps.getProperty("JDBCDriver");
-		url 			= dbProps.getProperty("url");
-		port 			= dbProps.getProperty("port");
+		url 				= dbProps.getProperty("url");
+		port 				= dbProps.getProperty("port");
 		dbname 			= dbProps.getProperty("dbname");
-		user 			= dbProps.getProperty("user");
+		user 				= dbProps.getProperty("user");
 		password 		= dbProps.getProperty("password");
 		connectionStr	= url + ":" + port + "/" + dbname + "?" + "user=" + user + "&password=" + password;
 		Log.d(TAG, "MYSQLAccess: constructor. Properties: " + connectionStr);
@@ -57,6 +57,7 @@ public class MySQLAccess
 
   public void connectToDataBase() throws Exception
   {
+	  Log.d(TAG, "connectToDataBase");
 	try
 	{
 		 Class.forName( JDBCDriver );	// this loads the defined JDBC class by name
@@ -83,7 +84,7 @@ public class MySQLAccess
 
   public void getAllUsers() throws Exception 
   {
-	  System.out.println("getAllUsers: user table data:");
+	  Log.d(TAG, "getAllUsers: user table data:");
 	  try
 	  {
 		  // statements allow to issue SQL queries to the database
@@ -103,16 +104,16 @@ public class MySQLAccess
 			String email 		= resultSet.getString("email");
 			int current_score 	= resultSet.getInt("current_score");
 			int high_score 		= resultSet.getInt("high_score");
-			System.out.println("username:" + username + ", email:" + email + ", current_score:" + current_score + ", high_score:" + high_score);
-//	        System.out.println("email: " + email);
-//	        System.out.println("current_score: " + current_score);
-//	        System.out.println("high_score: " + high_score);
-//	        System.out.println("---");
+			Log.d(TAG, "username:" + username + ", email:" + email + ", current_score:" + current_score + ", high_score:" + high_score);
+//	        Log.d(TAG, "email: " + email);
+//	        Log.d(TAG, "current_score: " + current_score);
+//	        Log.d(TAG, "high_score: " + high_score);
+//	        Log.d(TAG, "---");
 //	        String summary = resultSet.getString("summary");
 //	        Date date = resultSet.getDate("datum");
 //	        String comment = resultSet.getString("comments");
-//	        System.out.println("Date: " + date);
-//	        System.out.println("Comment: " + comment);
+//	        Log.d(TAG, "Date: " + date);
+//	        Log.d(TAG, "Comment: " + comment);
 		  }
 	  }
 	  catch(Exception e)
@@ -126,8 +127,8 @@ public class MySQLAccess
   }
   
   public void createNewUser(String username, String password, String email) throws Exception
-  {	
-	  System.out.println("createNewUser: " + username);
+  {
+	  Log.d(TAG, "createNewUser: " + username);
 	  try
 	  {
 		  // statements allow to issue SQL queries to the database
@@ -160,7 +161,7 @@ public class MySQLAccess
 	  }
 	  catch( MySQLIntegrityConstraintViolationException dupeUserException)
 	  {
-		  System.out.println("createNewUser: FAILED TO CREATE NEW USER. USERNAME ALREADY EXISTS: " + username);
+		  Log.d(TAG, "createNewUser: FAILED TO CREATE NEW USER. USERNAME ALREADY EXISTS: " + username);
 	  }
 	  catch (SQLException e)
 	  {
@@ -176,15 +177,15 @@ public class MySQLAccess
   {
 	  int rand = (int)(Math.random()*10000);
 	  String username = "_deleteme" + rand;
-	  System.out.println("createRandomNewUser: " + username);
+	  Log.d(TAG, "createRandomNewUser: " + username);
 	  createNewUser(username, "pass"+rand, "deleteme"+rand+"@gmail.com");
   }
   
-  public void updateCurrentScore(String user) throws SQLException
+  public void updateCurrentScore(String username) throws SQLException
   {
-	System.out.println("updateHighScore: for: " + user);
+	  Log.d(TAG, "updateHighScore: for: " + username);
 	
-	ResultSet userRecord = getUser( user, false );
+	ResultSet userRecord = getUser(username, null, null, false);
 	
 	try
 	{
@@ -194,12 +195,12 @@ public class MySQLAccess
 //	      preparedStatement.setInt(5, 0);
 		  preparedStatement.executeUpdate();
 
-		  // check result
-		  getUser( user, true );
+		// verify that score has been written to db
+		userRecord = getUser(username, null, null, true);
 	}
 	catch (SQLException e)
 	{
-		System.out.println("updateHighScore: FAILED.");
+		Log.d(TAG, "updateHighScore: FAILED.");
 		throw e;
 	}
 	finally
@@ -222,12 +223,12 @@ public class MySQLAccess
 		  boolean rowLocated = resultSet.first();
 		  if ( rowLocated )
 		  {
-			System.out.println("updateHighScore: user record located: " + user);
+			Log.d(TAG, "updateHighScore: user record located: " + user);
 			String username 	= resultSet.getString("username");
 			String email 		= resultSet.getString("email");
 			int current_score 	= resultSet.getInt("current_score");
 			int high_score 		= resultSet.getInt("high_score");
-			System.out.println("username:" + username + ", email:" + email + ", current_score:" + current_score + ", high_score:" + high_score);
+			Log.d(TAG, "username:" + username + ", email:" + email + ", current_score:" + current_score + ", high_score:" + high_score);
 		  }
 		  else
 		  {
@@ -237,7 +238,7 @@ public class MySQLAccess
 	} 
 	catch (Exception e)
 	{
-		System.out.println(e);
+		Log.d(TAG, (e);
 	}
 	finally
 	{
@@ -245,54 +246,68 @@ public class MySQLAccess
 	}
 	*/
   }
-  
-  public ResultSet getUser(String user, Boolean close) throws SQLException
-  {
-	try
-	{
-		statement = connection.createStatement();
 
-		  // resultSet gets the result of the SQL query
-		  resultSet = statement.executeQuery("SELECT * from users WHERE username='" + user + "'");
+	public ResultSet getUser(String user, String password, String email, Boolean close) throws SQLException
+	{
+		Log.d(TAG, "getUser:" + user + ", password:" + password + ", email:" + email + ", close:" + close);
 
-		  //TODO: there should only be one row. if there is more than one then multiple users have returned with the same username
-		  boolean rowLocated = resultSet.first();
-		  if ( rowLocated )
-		  {
-			System.out.println("getUser: user record located: " + user);
-			String username 	= resultSet.getString("username");
-			String email 		= resultSet.getString("email");
-			int current_score 	= resultSet.getInt("current_score");
-			int high_score 		= resultSet.getInt("high_score");
-			System.out.println("username:" + username + ", email:" + email + ", current_score:" + current_score + ", high_score:" + high_score);
-		  }
-		  else
-		  {
-			  Exception e = new Exception("getUser: FAILED. USERNAME NOT FOUND: " + user);
-			  throw e;
-		  }
-	} 
-	catch (Exception e)
-	{
-		System.out.println(e);
-	}
-	finally
-	{
-		if ( close )
+		try
 		{
-			resultSet.close();
+			statement = connection.createStatement();
+
+			// resultSet gets the result of the SQL query, and depends on which fields are passed
+			if(password == null && email == null)
+			{
+				resultSet = statement.executeQuery("SELECT * from users WHERE username='" + user + "';");
+			}
+			else if(password != null && email == null)
+			{
+				resultSet = statement.executeQuery("SELECT * from users WHERE username='" + user + "'" + "AND password='" + password + "';");
+			}
+			else
+			{
+				resultSet = statement.executeQuery("SELECT * from users WHERE username='" + user + "'" + "AND password='" + password + "'" + "AND email='" + email + "';");
+			}
+
+			//TODO: there should only be one row. if there is more than one then multiple users have returned with the same username
+			boolean rowLocated = resultSet.first();
+			if (rowLocated)
+			{
+				Log.d(TAG, "getUser: user record FOUND: " + user);
+				String dbUsername 	= resultSet.getString("username");
+				String dbPassword 	= resultSet.getString("password");
+				String dbEmail 		= resultSet.getString("email");
+				int dbCurrentScore 	= resultSet.getInt("current_score");
+				int dbHighScore 		= resultSet.getInt("high_score");
+				Log.d(TAG, "dbUsername:" + dbUsername + ", dbPassword:" + dbPassword + ", dbEmail:" + dbEmail + ", dbCurrentScore:" + dbCurrentScore + ", dbHighScore:" + dbHighScore);
+			}
+			else
+			{
+				SQLException e = new SQLException("getUser: FAILED. USERNAME NOT FOUND: " + user);
+				throw e;
+			}
 		}
+		catch (Exception e)
+		{
+			Log.d(TAG, e.getMessage());
+		}
+		finally
+		{
+			if (close)
+			{
+				resultSet.close();
+			}
+		}
+
+		return resultSet;
 	}
-	
-	return resultSet;
-  }
   
   private void writeMetaData(ResultSet resultSet) throws SQLException {
 	// now get some metadata from the database
-	System.out.println("The columns in the table are: ");
-	System.out.println("Table: " + resultSet.getMetaData().getTableName(1));
+	  Log.d(TAG, "The columns in the table are: ");
+	  Log.d(TAG, "Table: " + resultSet.getMetaData().getTableName(1));
 	for  (int i = 1; i<= resultSet.getMetaData().getColumnCount(); i++){
-	  System.out.println("Column " +i  + " "+ resultSet.getMetaData().getColumnName(i));
+		Log.d(TAG, "Column " + i + " " + resultSet.getMetaData().getColumnName(i));
 	}
   }
 

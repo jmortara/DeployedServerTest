@@ -16,9 +16,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    //sourceSets {
+    //    main.java.srcDirs += '../../../../../Eclipse_Workspaces/workspace_eclipse_JavaEE/versioned/WordWolf/WordWolfShared/messages'
+    //}
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile files('libs/mysql-connector-java-3.0.17-ga-bin.jar')
+    compile files('libs/mysql-connector-java-3.0.17-ga-bin.jar')    // added by jm
+    compile files('libs/messages.jar')                              // added by jm
 }

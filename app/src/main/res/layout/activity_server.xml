@@ -17,16 +17,8 @@
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="fill_parent"
-            android:layout_height="50dp">
+            android:layout_height="60dp">
 
-            <Button
-                android:id="@+id/connectButton"
-                android:layout_width="150dp"
-                android:layout_height="50dp"
-                android:text="Connect"
-                android:onClick="handleConnectButtonClick"
-                />
-            
             <CheckBox
                 android:id="@+id/connectedCheckBox"
                 android:layout_width="30dp"
@@ -34,22 +26,74 @@
                 android:clickable="false"
                 />
 
+            <Button
+                android:id="@+id/connectButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Server\nConnect"
+                android:onClick="handleConnectButtonClick"
+                />
+
+            <CheckBox
+                android:id="@+id/databaseCheckBox"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:clickable="false"
+                />
+
+            <Button
+                android:id="@+id/testDatabaseButton"
+                android:text="Test\nDB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="handleTestDatabaseButtonClick"
+                />
+
+            <CheckBox
+                android:id="@+id/loginCheckBox"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:clickable="false"
+                />
+
+            <Button
+                android:id="@+id/loginButton"
+                android:text="Log\nin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="handleLoginButtonClick"
+                />
+
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="20dp"
+                android:layout_height="60dp"
                 >
 
-                <TextView
-                    android:id="@+id/userName"
-                    android:text="User:"
-                    android:editable="false"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    />
 
             </LinearLayout>
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="30dp">
+        <TextView
+                android:id="@+id/user"
+                android:text="User:"
+                android:editable="false"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+
+            <TextView
+                android:id="@+id/userNameText"
+                android:text="(userName)"
+                android:editable="false"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
         </LinearLayout>
 
         <Space
@@ -84,7 +128,7 @@
         <Button
             android:id="@+id/hideKeyboardButton"
             android:text="Done"
-            android:layout_width="90dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="handleDoneButtonClick"
             />
@@ -92,7 +136,7 @@
         <Button
             android:id="@+id/clearButton"
             android:text="Clear"
-            android:layout_width="120dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="handleClearButtonClick"
             />
@@ -120,7 +164,7 @@
             <Button
                 android:id="@+id/echoButton"
                 android:text="Echo"
-                android:layout_width="90dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="handleEchoButtonClick"
                 />
@@ -128,7 +172,7 @@
              <Button
                 android:id="@+id/setUsernameButton"
                 android:text="Set\nUsername"
-                android:layout_width="130dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="handleSetUsernameButtonClick"
                 />
@@ -136,7 +180,7 @@
              <Button
                 android:id="@+id/getUsernameButton"
                 android:text="Get\nUsername"
-                android:layout_width="120dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="handleGetUsernameButtonClick"
                 />
@@ -152,7 +196,7 @@
              <Button
                 android:id="@+id/getOpponentsButton"
                 android:text="Get\nOpponents"
-                android:layout_width="130dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="handleGetOpponentsButtonClick"
                 />
@@ -160,7 +204,7 @@
              <Button
                 android:id="@+id/selectOpponentButton"
                 android:text="Select\nOpponent"
-                android:layout_width="120dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="handleSelectOpponentButtonClick"
                 />
@@ -168,7 +212,7 @@
             <Button
                 android:id="@+id/messageOpponentButton"
                 android:text="Message\nOpponent"
-                android:layout_width="120dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="handleMessageOpponentButtonClick"
                 />
@@ -182,17 +226,9 @@
             android:layout_gravity="center_horizontal">
 
             <Button
-                android:id="@+id/testDatabaseButton"
-                android:text="Test DB"
-                android:layout_width="80dp"
-                android:layout_height="wrap_content"
-                android:onClick="handleTestDatabaseButtonClick"
-                />
-
-            <Button
                 android:id="@+id/button"
                 android:text="Send New\nScore"
-                android:layout_width="120dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="handleSendNewScoreOfButtonClick"/>
 

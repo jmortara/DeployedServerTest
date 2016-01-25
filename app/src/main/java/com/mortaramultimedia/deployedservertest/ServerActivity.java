@@ -3,6 +3,7 @@ package com.mortaramultimedia.deployedservertest;
 import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,68 +13,107 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.mortaramultimedia.deployedservertest.database.MySQLAccessTester;
+import com.mortaramultimedia.deployedservertest.database.LoginAsyncTask;
 import com.mortaramultimedia.deployedservertest.database.DatabaseAsyncTask;
+import com.mortaramultimedia.deployedservertest.interfaces.IAsyncTaskCompleted;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Properties;
+
+import messages.LoginMessage;
 
 
-public class ServerActivity extends Activity
+public class ServerActivity extends Activity implements IAsyncTaskCompleted
 {
 	private static final String TAG = "ServerActivity";
 
 	//message prefixes
-	public static final String ECHO						= "/echo:";
-	public static final String SET_USERNAME				= "/setUsername:";
-	public static final String GET_USERNAME				= "/getUsername";
-	public static final String GET_OPPONENT_USERNAMES	= "/getOpponentUsernames";			// needs no colon or params
+	public static final String ECHO								= "/echo:";
+	public static final String SET_USERNAME					= "/setUsername:";
+	public static final String GET_USERNAME					= "/getUsername";
+	public static final String GET_OPPONENT_USERNAMES		= "/getOpponentUsernames";			// needs no colon or params
 	//public static final String GET_OPPONENT_PORTS			= "/getOpponentPorts";				//TODO // needs no colon or params
 	//public static final String MESSAGE_PLAYER_PORT		= "/messagePlayer_port_";			//TODO // must append colon
 	//public static final String SELECT_OPPONENT_PORT		= "/selectOpponent_port_";			//TODO // must append colon
 	public static final String SELECT_OPPONENT_USERNAME	= "/selectOpponentUsername:";		// must append colon
-	public static final String MESSAGE_OPPONENT 		= "/messageOpponent:";
-	public static final String SEND_NEW_CURRENT_SCORE	= "/sendNewCurrentScore:";
+	public static final String MESSAGE_OPPONENT 				= "/messageOpponent:";
+	public static final String SEND_NEW_CURRENT_SCORE		= "/sendNewCurrentScore:";
 
-	private ServerTask serverTask;			// inner async task
+	private ServerTask serverTask;				// inner async task
 	private DatabaseAsyncTask databaseTask;	// external async task
+	private LoginAsyncTask loginTask;			// external async task
 
 	private Button connectButton;
+	private Button testDatabaseButton;
+	private Button loginButton;
+	private TextView userNameText;
 	private TextView outgoingText;
 	private TextView incomingText;
 	private CheckBox connectedCheckBox;
+	private CheckBox databaseCheckBox;
+	private CheckBox loginCheckBox;
 //	private String incomingMessage;
 
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(Bundle savedInstanceState)
+	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_server);
 
 		// UI refs
 		connectButton 		= (Button)   findViewById(R.id.connectButton);
+		testDatabaseButton= (Button)   findViewById(R.id.testDatabaseButton);
+		loginButton 		= (Button)   findViewById(R.id.loginButton);
+		userNameText		= (TextView) findViewById(R.id.userNameText);
 		outgoingText 		= (EditText) findViewById(R.id.outgoingText);
 		incomingText 		= (TextView) findViewById(R.id.incomingText);
-		connectedCheckBox 	= (CheckBox) findViewById(R.id.connectedCheckBox);
+		connectedCheckBox = (CheckBox) findViewById(R.id.connectedCheckBox);
+		databaseCheckBox 	= (CheckBox) findViewById(R.id.databaseCheckBox);
+		loginCheckBox 		= (CheckBox) findViewById(R.id.loginCheckBox);
 
 		updateUI();
 	}
 
 	public void updateUI()
 	{
-		connectButton.setClickable( !Model.connected );
-		connectedCheckBox.setChecked( Model.connected );
-		if ( Model.connected )
+		// Connection UI
+		connectButton.setClickable(!Model.connected);
+		connectedCheckBox.setChecked(Model.connected);
+		if (Model.connected)
 		{
-			connectButton.setText( "Connected");
+			connectButton.setText("Connected");
+		}
+
+		// DB Test UI
+		testDatabaseButton.setClickable(!Model.dbTestOK);
+		databaseCheckBox.setChecked(Model.dbTestOK);
+		if (Model.dbTestOK)
+		{
+			testDatabaseButton.setText("DB\nOK");
+		}
+
+		// Login UI
+		loginButton.setClickable(!Model.loggedIn);
+		loginCheckBox.setChecked(Model.loggedIn);
+		if (Model.loggedIn)
+		{
+			loginButton.setText("Logged\nIn");
+		}
+
+		// Login info
+		if (Model.userLogin != null)
+		{
+			String username = Model.userLogin.getUserName();
+			if (username != null)
+			{
+				userNameText.setText(username);
+			}
 		}
 	}
 
@@ -102,6 +142,11 @@ public class ServerActivity extends Activity
 	{
 		Log.d(TAG, "handleConnectButtonClick");
 
+		if (Model.connected)
+		{
+			Log.d(TAG, "handleConnectButtonClick: already connected!");
+			return;
+		}
 		// Start network tasks separate from the main UI thread
 		if ( serverTask == null && !Model.connected )
 		{
@@ -123,7 +168,7 @@ public class ServerActivity extends Activity
 	private void clearOutgoingText()
 	{
 		Log.d(TAG, "clearOutgoingText");
-		outgoingText.setText( "" );
+		outgoingText.setText("");
 	}
 
 	public void handleDoneButtonClick(View view) throws IOException
@@ -137,7 +182,7 @@ public class ServerActivity extends Activity
 		Log.d(TAG, "handleEchoButtonClick");
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
-		serverTask.sendOutgoingMessageWithPrefix( ECHO, msg );
+		serverTask.sendOutgoingMessageWithPrefix(ECHO, msg);
 	}
 
 	public void handleSetUsernameButtonClick(View view) throws IOException
@@ -185,8 +230,38 @@ public class ServerActivity extends Activity
 	public void handleTestDatabaseButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleTestDatabaseButtonClick");
-		databaseTask = new DatabaseAsyncTask(this);
-		databaseTask.execute();
+		databaseTask = new DatabaseAsyncTask(this, this);
+
+		// workaround for issues with execute() not working properly on AsyncTasks
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+		{
+			databaseTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+		}
+		else
+		{
+			databaseTask.execute();
+		}
+	}
+
+	public void handleLoginButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleTestDatabaseButtonClick");
+
+		// next try a login	//TODO get this from input fields ************************************
+		LoginMessage newLogin = new LoginMessage(1, "jason", "jason123", "jmortara@wordwolfgame.com");    //TODO: HARDCODED
+		Model.userLogin = newLogin;
+
+		loginTask = new LoginAsyncTask(this, this);
+
+		// workaround for issues with execute() not working properly on AsyncTasks
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+		{
+			loginTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+		}
+		else
+		{
+			loginTask.execute();
+		}
 	}
 
 	public void handleSendNewScoreOfButtonClick(View view) throws IOException
@@ -519,6 +594,15 @@ public class ServerActivity extends Activity
 	} // end inner class ServerTask
 
 
+	/**
+	 * IAsyncTaskCompleted overrides
+	 */
+	@Override
+	public void onTaskCompleted()
+	{
+		Log.d(TAG, "onTaskCompleted");
+		updateUI();
+	}
 
 
 }
