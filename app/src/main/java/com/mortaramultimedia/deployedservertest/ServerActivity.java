@@ -42,7 +42,8 @@ public class ServerActivity extends Activity
 	public static final String MESSAGE_OPPONENT 		= "/messageOpponent:";
 	public static final String SEND_NEW_CURRENT_SCORE	= "/sendNewCurrentScore:";
 
-	private ServerTask serverTask;
+	private ServerTask serverTask;		// inner async task
+	private DatabaseTask databaseTask;	// inner async task
 
 	private Button connectButton;
 	private TextView outgoingText;
@@ -183,20 +184,8 @@ public class ServerActivity extends Activity
 	public void handleTestDatabaseButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleTestDatabaseButtonClick");
-		try
-		{
-			Properties dbProps = new Properties();
-
-			InputStream in = getBaseContext().getAssets().open("database.properties");
-			dbProps.load(in);
-
-			// once props are loaded, test the db with the values defined therein
-			MySQLAccessTester.test(dbProps);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
+		databaseTask = new DatabaseTask(this);
+		databaseTask.execute();
 	}
 
 	public void handleSendNewScoreOfButtonClick(View view) throws IOException
@@ -241,9 +230,9 @@ public class ServerActivity extends Activity
 	}
 	*/
 
-	/**
+	/****************************************************************************************
 	 * ServerTask - AsyncTask which handles server connections and messaging
-	 */
+	 ****************************************************************************************/
 	private class ServerTask extends AsyncTask<Void, Integer, Integer>
 	{
 		private ServerActivity serverActivity;
@@ -527,5 +516,83 @@ public class ServerActivity extends Activity
 			updateUI();
 		}
 	} // end inner class
+
+
+	/****************************************************************************************
+	 * DatabaseTask - AsyncTask which handles server connections and messaging
+	 ****************************************************************************************/
+	private class DatabaseTask extends AsyncTask<Void, Integer, Integer>
+	{
+		// vars
+//		private Properties dbProps = null;
+
+		// constructor
+		DatabaseTask( ServerActivity sa )
+		{
+			Log.d(TAG, "DatabaseTask constructor");
+
+			// inits
+			readDatabaseProperties();
+		}
+
+		private void readDatabaseProperties()
+		{
+			Log.d(TAG, "DatabaseTask: readDatabaseProperties");
+			try
+			{
+				Properties dbProps = new Properties();
+
+				InputStream in = getBaseContext().getAssets().open("database.properties");
+				dbProps.load(in);
+
+				// store in Model
+				Model.databaseProps = dbProps;
+
+				// once props are loaded, test the db with the values defined therein
+				Log.d(TAG, "DatabaseTask: readDatabaseProperties: Properties read.");
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		protected Integer doInBackground(Void... unused)
+		{
+			Log.d(TAG, "DatabaseTask: doInBackground: dbProps? " + Model.databaseProps.toString());
+			int testSucceeded = 0;
+			if (Model.databaseProps != null)
+			{
+				Log.d(TAG, "DatabaseTask: doInBackground: Attempting to test database");
+				try
+				{
+					testSucceeded = MySQLAccessTester.test(Model.databaseProps);
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+					testSucceeded = 0;
+				}
+			}
+			// update Model with connection status
+			return testSucceeded;
+		}
+
+
+		@Override
+		protected void onProgressUpdate(Integer... progress)
+		{
+			// Log.d(TAG, "DatabaseTask: onProgressUpdate: " + progress);
+		}
+
+		@Override
+		protected void onPostExecute(Integer result)
+		{
+			String str = "DatabaseTask: onPostExecute: " + result;
+			Log.d(TAG, str);
+		}
+	} // end inner class DatabaseTask
+
 
 }
