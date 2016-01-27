@@ -2,9 +2,11 @@ package com.mortaramultimedia.deployedservertest;
 
 import android.util.Log;
 
+import com.mortaramultimedia.wordwolf.shared.messages.LoginRequest;
+
 import java.util.Properties;
 
-import messages.LoginMessage;
+
 
 
 /**
@@ -15,7 +17,7 @@ public class Model
 	private static final String TAG = "Model";
 
 	public static Properties databaseProps = null;
-	public static LoginMessage userLogin = null;
+	public static LoginRequest userLogin = null;
 
 	public static final String HOST = "wordwolfgame.com";	// WARNING - will connect to any site hosted on jasonmortara.com
 	public static final int PORT = 4001;

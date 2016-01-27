@@ -23,6 +23,8 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile files('libs/mysql-connector-java-3.0.17-ga-bin.jar')    // added by jm
-    compile files('libs/messages.jar')                              // added by jm
+    compile files('libs/mysql-connector-java-3.0.17-ga-bin.jar')
+    // added by jm
+    // added by jm
+    compile files('libs/wordwolf_shared_objects.jar')
 }

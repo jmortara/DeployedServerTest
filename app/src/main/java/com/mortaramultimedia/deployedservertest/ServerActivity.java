@@ -2,6 +2,7 @@ package com.mortaramultimedia.deployedservertest;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -190,7 +191,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		Log.d(TAG, "handleSetUsernameButtonClick");
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
-		serverTask.sendOutgoingMessageWithPrefix( SET_USERNAME, msg );
+		serverTask.sendOutgoingMessageWithPrefix(SET_USERNAME, msg);
 	}
 
 	public void handleGetUsernameButtonClick(View view) throws IOException
@@ -243,7 +244,26 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		}
 	}
 
+	/**
+	 * Login Button handler - launches LoginActivity
+	 * @param view
+	 * @throws IOException
+	 */
 	public void handleLoginButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleTestDatabaseButtonClick");
+
+		// create an Intent, with optional additional params
+		Context thisContext = ServerActivity.this;
+		Intent intent = new Intent(thisContext, LoginActivity.class);
+		intent.putExtra("testParam", "tesValue");								//optional params
+
+		// start the activity
+		startActivityForResult(intent, Activity.RESULT_OK);
+	}
+
+	// original login button handler -- attempted login with hardcoded credentials
+/*	public void handleLoginButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleTestDatabaseButtonClick");
 
@@ -262,7 +282,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		{
 			loginTask.execute();
 		}
-	}
+	}*/
 
 	public void handleSendNewScoreOfButtonClick(View view) throws IOException
 	{
@@ -593,9 +613,26 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		}
 	} // end inner class ServerTask
 
+	/**
+	 * Handle the result of the activity launched from thie one.
+	 */
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent intent)
+	{
+		if(requestCode == Activity.RESULT_OK)
+		{
+			Log.d(TAG, "onActivityResult: LOGIN SUCCESS returned from LoginActivity");
+		}
+		else
+		{
+			Log.d(TAG, "onActivityResult: LOGIN FAILURE returned from LoginActivity");
+		}
+		updateUI();
+	}
 
 	/**
 	 * IAsyncTaskCompleted overrides
+	 * TODO = still called?
 	 */
 	@Override
 	public void onTaskCompleted()

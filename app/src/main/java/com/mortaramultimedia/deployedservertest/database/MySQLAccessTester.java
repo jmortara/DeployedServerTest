@@ -66,6 +66,7 @@ public class MySQLAccessTester
 			}
 			catch (SQLException e)
 			{
+				Log.d(TAG, "attemptLogin: ERROR");
 				e.printStackTrace();
 			}
 		}
