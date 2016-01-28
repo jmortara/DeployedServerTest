@@ -317,13 +317,13 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
 
 		if(Model.loggedIn)
 		{
-			resultCode = Activity.RESULT_OK;
-			Log.d(TAG, "onTaskCompleted successfully with result code: " + resultCode);
+			resultCode = 1;
+			Log.d(TAG, "onTaskCompleted successful with result code: " + resultCode);
 		}
 		else
 		{
-			resultCode = Activity.RESULT_CANCELED;
-			Log.d(TAG, "onTaskCompleted unsuccessfully with result code: " + resultCode);
+			resultCode = 0;
+			Log.d(TAG, "onTaskCompleted canceled with result code: " + resultCode);
 		}
 		setResult(resultCode, returnIntent);
 

@@ -50,9 +50,13 @@ public class MySQLAccessTester
 		}
 	}
 
+	/**
+	 * Attempt login with the LoginRequest obj stored in the Model, say from the LoginActivity
+	 * @return
+	 */
 	public static int attemptLogin()
 	{
-		Log.d(TAG, "attemptLogin -- HARDCODED VALUES");
+		Log.d(TAG, "attemptLogin via Model with these credentials: " + Model.userLogin);
 
 		int loginSucceeded = 0;
 
@@ -60,9 +64,27 @@ public class MySQLAccessTester
 		{
 			try
 			{
-				dao.getUser(Model.userLogin.getUserName(), Model.userLogin.getPassword(), null, false);
-				Log.d(TAG, "attemptLogin: success!");
-				loginSucceeded = 1;
+				ResultSet retrievedUsers = dao.getUser(Model.userLogin.getUserName(), Model.userLogin.getPassword(), null, false);
+
+				// we need to know if there were actual rows of data retrieved by the db query in order to know if the login succeeded or not
+				int numRows = 0;
+				if (retrievedUsers != null)
+				{
+					retrievedUsers.beforeFirst();
+					retrievedUsers.last();
+					numRows = retrievedUsers.getRow();
+				}
+
+				if (numRows > 0)
+				{
+					Log.d(TAG, "attemptLogin: success! found this many matching users: " + numRows);
+					loginSucceeded = 1;
+				}
+				else
+				{
+					Log.d(TAG, "attemptLogin: failed! found this many matching users: " + numRows);
+					loginSucceeded = 0;
+				}
 			}
 			catch (SQLException e)
 			{

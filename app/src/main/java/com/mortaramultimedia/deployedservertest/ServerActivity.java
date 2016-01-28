@@ -83,12 +83,14 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 	public void updateUI()
 	{
+		Log.d(TAG, "updateUI");
+
 		// Connection UI
 		connectButton.setClickable(!Model.connected);
 		connectedCheckBox.setChecked(Model.connected);
 		if (Model.connected)
 		{
-			connectButton.setText("Connected");
+			connectButton.setText("Server\nOK");
 		}
 
 		// DB Test UI
@@ -256,10 +258,10 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		// create an Intent, with optional additional params
 		Context thisContext = ServerActivity.this;
 		Intent intent = new Intent(thisContext, LoginActivity.class);
-		intent.putExtra("testParam", "tesValue");								//optional params
+		intent.putExtra("testParam", "testValue");								//optional params
 
 		// start the activity
-		startActivityForResult(intent, Activity.RESULT_OK);
+		startActivityForResult(intent, 1);		//TODO: note that in order for this class' onActivityResult to be called when the LoginActivity has completed, the requestCode here must be > 0
 	}
 
 	// original login button handler -- attempted login with hardcoded credentials
@@ -619,13 +621,13 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent)
 	{
-		if(requestCode == Activity.RESULT_OK)
+		if(requestCode == 1)	// see the note in the startActivityForResult above
 		{
-			Log.d(TAG, "onActivityResult: LOGIN SUCCESS returned from LoginActivity");
+			Log.d(TAG, "onActivityResult: LOGIN SUCCESS returned from LoginActivity. requestCode: " + requestCode);
 		}
 		else
 		{
-			Log.d(TAG, "onActivityResult: LOGIN FAILURE returned from LoginActivity");
+			Log.d(TAG, "onActivityResult: LOGIN FAILURE returned from LoginActivity. requestCode: " + requestCode);
 		}
 		updateUI();
 	}
