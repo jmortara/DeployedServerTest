@@ -14,13 +14,19 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.mortaramultimedia.deployedservertest.communications.Comm;
 import com.mortaramultimedia.deployedservertest.database.LoginAsyncTask;
 import com.mortaramultimedia.deployedservertest.database.DatabaseAsyncTask;
 import com.mortaramultimedia.deployedservertest.interfaces.IAsyncTaskCompleted;
+import com.mortaramultimedia.wordwolf.shared.constants.Constants;
+import com.mortaramultimedia.wordwolf.shared.messages.LoginRequest;
+import com.mortaramultimedia.wordwolf.shared.messages.SimpleMessage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -141,6 +147,11 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	}
 */
 
+	/**
+	 * Connect to the Word Wolf Server
+	 * @param view
+	 * @throws IOException
+	 */
 	public void handleConnectButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleConnectButtonClick");
@@ -185,7 +196,9 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		Log.d(TAG, "handleEchoButtonClick");
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
-		serverTask.sendOutgoingMessageWithPrefix(ECHO, msg);
+		SimpleMessage msgObj = new SimpleMessage(msg, false);
+//		serverTask.sendOutgoingMessageWithPrefix(ECHO, msg);
+		serverTask.sendOutgoingObject(msgObj);
 	}
 
 	public void handleSetUsernameButtonClick(View view) throws IOException
@@ -307,6 +320,16 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		serverTask.sendOutgoingMessageWithPrefix( SEND_NEW_CURRENT_SCORE, Model.score.toString() );
 	}
 
+	public void handleLoginTestButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleLoginTestButtonClick: USING HARDCODE VALUES, NOT INPUT FIELD DATA");
+		hideSoftKeyboard();
+
+		LoginRequest testLoginRequest = new LoginRequest(2, "jason", "jason123", "jmortara@wordwolfgame.com");
+		Model.userLogin = testLoginRequest;
+		serverTask.sendOutgoingObject(testLoginRequest);
+	}
+
 	private void hideSoftKeyboard()
 	{
 		Log.d(TAG, "hideSoftKeyboard");
@@ -335,8 +358,10 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	{
 		private ServerActivity serverActivity;
 		private Socket s;
-		private PrintWriter s_out;
-		private BufferedReader s_in;
+//		private PrintWriter s_out;
+//		private BufferedReader s_in;
+		private ObjectOutputStream s_objOut;
+		private ObjectInputStream s_objIn;
 
 		// constructor
 		ServerTask( ServerActivity sa )
@@ -348,9 +373,15 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		@Override
 		protected Integer doInBackground(Void... unused)
 		{
+			// need to force wait for debugger to breakpoint in this thread
+			if(android.os.Debug.isDebuggerConnected())
+			{
+				android.os.Debug.waitForDebugger();
+			}
+
 			s = new Socket();
-			s_out = null;
-			s_in = null;
+//			s_out = null;
+//			s_in = null;
 
 			try
 			{
@@ -364,10 +395,19 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				{
 					System.err.println("Don't know about host : " + Model.HOST);
 					System.exit(1);
-					s_out.close();
+//					s_out.close();
 					try
 					{
-						s_in.close();
+						s_objOut.close();
+					}
+					catch (IOException e1)
+					{
+						e1.printStackTrace();
+					}
+					try
+					{
+//						s_in.close();
+						s_objIn.close();
 					}
 					catch (IOException e1)
 					{
@@ -398,29 +438,44 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 				if ( s.isConnected() )
 				{
-					Log.d(TAG, "Connected.");
+					Log.d(TAG, "Connected to wwss.");
 
 					// create writer for socket
 					try
 					{
-						if ( s_out == null )
+//						if ( s_out == null )
+//						{
+//							s_out = new PrintWriter( s.getOutputStream(), true);
+//						}
+						if ( s_objOut == null )
 						{
-							s_out = new PrintWriter( s.getOutputStream(), true);
+							s_objOut = new ObjectOutputStream(s.getOutputStream());
+							Comm.setOut(s_objOut);
+							Log.d(TAG, "Created ObjectOutputStream.");
 						}
 					}
 					catch (IOException e)
 					{
 						e.printStackTrace();
 					}
-					//Send inirial message to server
-					sendOutgoingMessageWithPrefix( ECHO, "Client says hello." );
+
+					//Send initial message to server
+//					sendOutgoingMessageWithPrefix( ECHO, "Client says hello." );
+					SimpleMessage msgObj = new SimpleMessage(Constants.HELLO_SERVER, true);
+					sendOutgoingObject(msgObj);
 
 					//reader for socket
 					try
 					{
-						if (s_in == null)
+//						if (s_in == null)
+//						{
+//							s_in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+//						}
+						if (s_objIn == null)
 						{
-							s_in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+							s_objIn = new ObjectInputStream(s.getInputStream());
+							Comm.setIn(s_objIn);	// create reference for other classes to use
+							Log.d(TAG, "Created ObjectInputStream.");
 						}
 					}
 					catch (IOException e)
@@ -431,6 +486,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 
 					//Get response from server
+/*
 					String response;
 					if (s_in != null)
 					{
@@ -459,6 +515,25 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 						}
 						return 2;
 					}
+*/
+
+					// obj response
+					Object responseObj;
+					if(s_objIn != null)
+					{
+						try
+						{
+							while ((responseObj = s_objIn.readObject()) != null)
+							{
+								Log.d(TAG, "Server response obj: " + responseObj );
+								//Model.setIncomingMessageObj(responseObj);
+							}
+						}
+						catch(IOException | ClassNotFoundException e)
+						{
+							e.printStackTrace();
+						}
+					}
 
 				}
 				else
@@ -476,17 +551,40 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 			// other stuff? close?
 			Log.d(TAG, "Continuing...");
-			if (s_out != null)
-			{
-				s_out.close();
-			}
-			if (s_in != null)
+//			if (s_out != null)
+//			{
+//				s_out.close();
+//			}
+			if (s_objOut != null)
 			{
 				try
 				{
-					s_in.close();
+					s_objOut.close();
 				}
 				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
+
+//			if (s_in != null)
+//			{
+//				try
+//				{
+//					s_in.close();
+//				}
+//				catch (IOException e)
+//				{
+//					e.printStackTrace();
+//				}
+//			}
+			if (s_objIn != null)
+			{
+				try
+				{
+					s_objIn.close();
+				}
+				catch(IOException e)
 				{
 					e.printStackTrace();
 				}
@@ -503,14 +601,44 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			return 1;
 		}
 
+		//TODO: use sendOutgoingObject instead
 		protected void sendMessage(String msg)
 		{
-			Log.d(TAG, "sendMessage: " + s.isConnected() + ", " + s_out.toString());
-			if ( s.isConnected() )
+			Log.d(TAG, "sendMessage: " + s.isConnected() + ", " + msg);
+//			Log.d(TAG, "sendMessage: " + s.isConnected() + ", " + s_out.toString());
+//			if ( s.isConnected() )
+//			{
+//				if (s_out != null)
+//				{
+//					s_out.println( msg );
+//				}
+//			}
+		}
+
+		public void sendOutgoingObject(Object obj)
+		{
+			Log.d(TAG, "sendOutgoingObject: " + obj);
+
+			if ( serverTask == null || !Model.connected )
 			{
-				if (s_out != null)
+				Log.d(TAG, "sendOutgoingObject: WARNING: not connected. Ignoring.");
+				return;
+			}
+
+			// send it to the server
+			if ( s.isConnected() && obj != null )
+			{
+				if (s_objOut != null)
 				{
-					s_out.println( msg );
+					try
+					{
+						s_objOut.writeObject(obj);
+						s_objOut.flush();
+					}
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -589,13 +717,13 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				Log.d( TAG, "sendOutgoingMessageWithPrefix: completeMessageToServer: " + completeMessageToServer );
 
 				// send the complete assembled message to the server
-				if ( s.isConnected() && completeMessageToServer.length() > 0 )
-				{
-					if (s_out != null)
-					{
-						s_out.println( completeMessageToServer );
-					}
-				}
+//				if ( s.isConnected() && completeMessageToServer.length() > 0 )
+//				{
+//					if (s_out != null)
+//					{
+//						s_out.println( completeMessageToServer );
+//					}
+//				}
 			}
 
 		}
@@ -616,7 +744,8 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	} // end inner class ServerTask
 
 	/**
-	 * Handle the result of the activity launched from thie one.
+	 * Handle the result of the activity launched from this one.
+	 * TODO - THE REQUEST CODES ARE NOT WORKING CORRECLTLY... FAILED LOGINS ON SERVER SIDE RESULT IN REQUESTCODE 1 HERE
 	 */
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent)

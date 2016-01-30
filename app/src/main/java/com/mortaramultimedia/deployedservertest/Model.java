@@ -4,6 +4,8 @@ import android.util.Log;
 
 import com.mortaramultimedia.wordwolf.shared.messages.LoginRequest;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Properties;
 
 
@@ -22,15 +24,9 @@ public class Model
 	public static final String HOST = "wordwolfgame.com";	// WARNING - will connect to any site hosted on jasonmortara.com
 	public static final int PORT = 4001;
 
-	public static String incomingMessage = "default";
 	public static Boolean connected 	= false;
 	public static Boolean dbTestOK 	= false;
 	public static Boolean loggedIn 	= false;
 	public static Integer score 		= 0;
 
-	public static void setIncomingMessage( String msg )
-	{
-		Log.d( TAG, "setIncomingMessage to: " + msg );
-		incomingMessage = msg;
-	}
 }

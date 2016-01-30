@@ -232,6 +232,13 @@
                 android:layout_height="wrap_content"
                 android:onClick="handleSendNewScoreOfButtonClick"/>
 
+            <Button
+                android:id="@+id/testButton"
+                android:text="Login\nTest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="handleLoginTestButtonClick"/>
+
         </LinearLayout>
 
         <Space

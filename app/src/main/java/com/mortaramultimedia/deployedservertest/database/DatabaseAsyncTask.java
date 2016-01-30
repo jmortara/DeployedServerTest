@@ -6,7 +6,9 @@ import android.util.Log;
 
 import com.mortaramultimedia.deployedservertest.Model;
 import com.mortaramultimedia.deployedservertest.ServerActivity;
+import com.mortaramultimedia.deployedservertest.communications.Comm;
 import com.mortaramultimedia.deployedservertest.interfaces.IAsyncTaskCompleted;
+import com.mortaramultimedia.wordwolf.shared.messages.ConnectToDatabaseRequest;
 
 import java.io.InputStream;
 import java.util.Properties;
@@ -86,7 +88,10 @@ public class DatabaseAsyncTask extends AsyncTask<Void, Integer, Integer>
 			try
 			{
 				// first test the connection and run some queries
-				testSucceeded = MySQLAccessTester.test(Model.databaseProps);
+//				testSucceeded = MySQLAccessTester.test(Model.databaseProps);
+				ConnectToDatabaseRequest connectToDatabaseRequest = new ConnectToDatabaseRequest();
+				Comm.out().writeObject(connectToDatabaseRequest);
+				Comm.out().flush();
 			}
 			catch (Exception e)
 			{

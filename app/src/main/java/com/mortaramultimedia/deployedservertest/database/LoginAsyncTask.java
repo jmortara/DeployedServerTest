@@ -5,7 +5,9 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.mortaramultimedia.deployedservertest.Model;
+import com.mortaramultimedia.deployedservertest.communications.Comm;
 import com.mortaramultimedia.deployedservertest.interfaces.IAsyncTaskCompleted;
+import com.mortaramultimedia.wordwolf.shared.messages.LoginRequest;
 
 import java.io.InputStream;
 import java.util.Properties;
@@ -84,13 +86,17 @@ public class LoginAsyncTask extends AsyncTask<Void, Integer, Integer>
 
 		if (Model.databaseProps != null)
 		{
-			Log.d(TAG, "doInBackground: Attempting database user login");
+			Log.d(TAG, "doInBackground: Attempting user login through server command");
 			try
 			{
 				// try a login	//TODO get this from input fields
 //				LoginMessage newLogin = new LoginMessage(1, "jason", "jason123", "jmortara@wordwolfgame.com");    //TODO: HARDCODED
 //				Model.userLogin = newLogin;
-				loginSucceeded = MySQLAccessTester.attemptLogin();
+//				loginSucceeded = MySQLAccessTester.attemptLogin();
+
+				LoginRequest loginRequest = Model.userLogin;
+				Comm.out().writeObject(loginRequest);
+				Comm.out().flush();
 			}
 			catch (Exception e)
 			{
@@ -98,6 +104,7 @@ public class LoginAsyncTask extends AsyncTask<Void, Integer, Integer>
 			}
 		}
 
+		//TODO:FIX
 		// store result of login attempt in Model
 		if(loginSucceeded == 0)
 		{
