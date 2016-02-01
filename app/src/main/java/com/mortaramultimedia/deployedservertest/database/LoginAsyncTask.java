@@ -90,7 +90,7 @@ public class LoginAsyncTask extends AsyncTask<Void, Integer, Integer>
 			try
 			{
 				// try a login	//TODO get this from input fields
-//				LoginMessage newLogin = new LoginMessage(1, "jason", "jason123", "jmortara@wordwolfgame.com");    //TODO: HARDCODED
+//				LoginMessage newLogin = new LoginMessage(1, "test1", "test1pass", "test1@wordwolfgame.com");    //TODO: HARDCODED
 //				Model.userLogin = newLogin;
 //				loginSucceeded = MySQLAccessTester.attemptLogin();
 

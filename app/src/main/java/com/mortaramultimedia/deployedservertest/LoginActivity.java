@@ -38,7 +38,7 @@ import java.util.List;
 
 /**
  * Login Activity
- * @author jason mortara
+ * @author jason mortara (modified from Android default LoginActivity)
  */
 public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, IAsyncTaskCompleted
 {
@@ -75,6 +75,9 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
 		mSignInView 	= (Button) 						findViewById(R.id.account_sign_in_or_register_button);
 		mProgressView 	= (View) 						findViewById(R.id.login_progress);
 
+		// set default values in text fields to expedite testing - TODO: remove
+		setDefaults();
+
 		// assign Sign In / Register button behavior
 		mSignInView.setOnClickListener(new OnClickListener()
 		{
@@ -87,6 +90,25 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
 		});
 	}
 
+	private void setDefaults()
+	{
+		// emulator
+		if(Build.BRAND.equalsIgnoreCase("generic"))
+		{
+			Log.d(TAG, "setDefaults: running in EMULATOR");
+			mUsernameView.setText("test2");
+			mPasswordView.setText("test2pass");
+			mEmailView.setText("test2@wordwolfgame.com");
+		}
+		// device
+		else
+		{
+			Log.d(TAG, "setDefaults: running on DEVICE");
+			mUsernameView.setText("test1");
+			mPasswordView.setText("test1pass");
+			mEmailView.setText("test1@wordwolfgame.com");
+		}
+	}
 
 	/********************************************************
 	 * Attempt the Login once the user fields are filled in

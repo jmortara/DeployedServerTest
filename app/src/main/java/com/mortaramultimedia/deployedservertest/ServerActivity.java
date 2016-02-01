@@ -19,7 +19,10 @@ import com.mortaramultimedia.deployedservertest.database.LoginAsyncTask;
 import com.mortaramultimedia.deployedservertest.database.DatabaseAsyncTask;
 import com.mortaramultimedia.deployedservertest.interfaces.IAsyncTaskCompleted;
 import com.mortaramultimedia.wordwolf.shared.constants.Constants;
+import com.mortaramultimedia.wordwolf.shared.messages.GetPlayerListRequest;
+import com.mortaramultimedia.wordwolf.shared.messages.GetPlayerListResponse;
 import com.mortaramultimedia.wordwolf.shared.messages.LoginRequest;
+import com.mortaramultimedia.wordwolf.shared.messages.LoginResponse;
 import com.mortaramultimedia.wordwolf.shared.messages.SimpleMessage;
 
 import java.io.BufferedReader;
@@ -191,6 +194,16 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		hideSoftKeyboard();
 	}
 
+	public void handleMessageButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleMessageButtonClick");
+		hideSoftKeyboard();
+		String msg = outgoingText.getText().toString();
+		SimpleMessage msgObj = new SimpleMessage(msg, true);
+//		serverTask.sendOutgoingMessageWithPrefix(ECHO, msg);
+		serverTask.sendOutgoingObject(msgObj);
+	}
+
 	public void handleEchoButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleEchoButtonClick");
@@ -215,6 +228,14 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
 		serverTask.sendOutgoingMessageWithPrefix( GET_USERNAME, null );
+	}
+
+	public void handleGetAllPlayersButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleGetAllPlayersButtonClick");
+		hideSoftKeyboard();
+		GetPlayerListRequest getPlayerListRequest = new GetPlayerListRequest(GetPlayerListRequest.REQUEST_TYPE_ALL_PLAYERS);
+		serverTask.sendOutgoingObject(getPlayerListRequest);
 	}
 
 	public void handleGetOpponentsButtonClick(View view) throws IOException
@@ -283,7 +304,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		Log.d(TAG, "handleTestDatabaseButtonClick");
 
 		// next try a login	//TODO get this from input fields ************************************
-		LoginMessage newLogin = new LoginMessage(1, "jason", "jason123", "jmortara@wordwolfgame.com");    //TODO: HARDCODED
+		LoginMessage newLogin = new LoginMessage(1, "test1", "test1pass", "test1@wordwolfgame.com");    //TODO: HARDCODED
 		Model.userLogin = newLogin;
 
 		loginTask = new LoginAsyncTask(this, this);
@@ -325,7 +346,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		Log.d(TAG, "handleLoginTestButtonClick: USING HARDCODE VALUES, NOT INPUT FIELD DATA");
 		hideSoftKeyboard();
 
-		LoginRequest testLoginRequest = new LoginRequest(2, "jason", "jason123", "jmortara@wordwolfgame.com");
+		LoginRequest testLoginRequest = new LoginRequest(2, "test2", "test2pass", "test2@wordwolfgame.com");
 		Model.userLogin = testLoginRequest;
 		serverTask.sendOutgoingObject(testLoginRequest);
 	}
@@ -527,6 +548,8 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 							{
 								Log.d(TAG, "Server response obj: " + responseObj );
 								//Model.setIncomingMessageObj(responseObj);
+								//TODO: FILL IN RESPONSE HANDLING
+								handleIncomingObject(responseObj);
 							}
 						}
 						catch(IOException | ClassNotFoundException e)
@@ -601,6 +624,49 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			return 1;
 		}
 
+		private void handleIncomingObject(Object obj)
+		{
+			Log.d(TAG, "handleIncomingObject: " + obj);
+
+			/**
+			 * If receiving a SimpleMessage, log the message. If echo was requested, send it back to the client as well.
+			 */
+			if(obj instanceof SimpleMessage)
+			{
+				handleSimpleMessage(((SimpleMessage) obj));
+			}
+			/**
+			 * If receiving a LoginResponse...
+			 */
+			else if(obj instanceof LoginResponse)
+			{
+				handleLoginResponse(((LoginResponse) obj));
+			}
+			/**
+			 * If receiving a GetPlayerListResponse
+			 */
+			else if(obj instanceof GetPlayerListResponse)
+			{
+				handleGetPlayerListResponse(((GetPlayerListResponse) obj));
+			}
+			/**
+			 * If receiving a CreateNewAccountResponse...
+			 */
+			/*else if(obj instanceof CreateNewAccountResponse)
+			{
+				handleCreateNewAccountResponse(((CreateNewAccountResponse) obj), out);
+			}*/
+			/**
+			 * If receiving a CreateGameResponse...
+			 */
+			/*else if(obj instanceof CreateGameResponse)
+			{
+				handleCreateGameResponse(((CreateGameResponse) obj), out);
+			}*/
+
+
+		}
+
 		//TODO: use sendOutgoingObject instead
 		protected void sendMessage(String msg)
 		{
@@ -645,7 +711,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 		public void sendOutgoingMessageWithPrefix( String prefix, String msg )
 		{
-			Log.d(TAG, "sendOutgoingMessageWithPrefix: request from user: " + prefix + ", " + msg);
+			Log.d(TAG, "sendOutgoingMessageWithPrefix: Response from user: " + prefix + ", " + msg);
 
 			String completeMessageToServer = "";
 
@@ -727,6 +793,25 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			}
 
 		}
+
+		private void handleSimpleMessage(SimpleMessage msgObj)
+		{
+			Log.d(TAG, "handleSimpleMessage: " + msgObj.getMsg());
+		}
+
+		private void handleLoginResponse(LoginResponse response)
+		{
+			Log.d(TAG, "handleLoginResponse: " + response);
+		}
+
+		private void handleGetPlayerListResponse(GetPlayerListResponse response)
+		{
+			Log.d(TAG, "handleGetPlayerListResponse: " + response);
+			Log.d(TAG, "handleGetPlayerListResponse: player list: " + response.getPlayersCopy());
+		}
+
+
+
 
 		@Override
 		protected void onProgressUpdate(Integer... progress)

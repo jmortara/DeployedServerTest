@@ -162,6 +162,14 @@
             android:layout_gravity="center_horizontal">
 
             <Button
+                android:id="@+id/messageButton"
+                android:text="Msg"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="handleMessageButtonClick"
+                />
+
+            <Button
                 android:id="@+id/echoButton"
                 android:text="Echo"
                 android:layout_width="wrap_content"
@@ -169,9 +177,9 @@
                 android:onClick="handleEchoButtonClick"
                 />
 
-             <Button
+            <Button
                 android:id="@+id/setUsernameButton"
-                android:text="Set\nUsername"
+                android:text="Set\nUsrnm"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="handleSetUsernameButtonClick"
@@ -179,7 +187,7 @@
 
              <Button
                 android:id="@+id/getUsernameButton"
-                android:text="Get\nUsername"
+                android:text="Get\nUsrnm"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="handleGetUsernameButtonClick"
@@ -193,17 +201,25 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal">
 
-             <Button
+            <Button
+                android:id="@+id/getAllPlayersButton"
+                android:text="Get\nAllPlyrs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="handleGetAllPlayersButtonClick"
+                />
+
+            <Button
                 android:id="@+id/getOpponentsButton"
-                android:text="Get\nOpponents"
+                android:text="Get\nOppnts"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="handleGetOpponentsButtonClick"
                 />
 
-             <Button
+            <Button
                 android:id="@+id/selectOpponentButton"
-                android:text="Select\nOpponent"
+                android:text="Select\nOppnts"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="handleSelectOpponentButtonClick"
@@ -211,7 +227,7 @@
 
             <Button
                 android:id="@+id/messageOpponentButton"
-                android:text="Message\nOpponent"
+                android:text="Msg\nOppnt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="handleMessageOpponentButtonClick"
