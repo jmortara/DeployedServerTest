@@ -10,6 +10,8 @@
 	<string name="prompt_email">Email</string>
 	<string name="prompt_username">Username</string>
 	<string name="prompt_password">Password</string>
+	<string name="action_set_user_to_test_1">Set user to test1</string>
+	<string name="action_set_user_to_test_2">Set user to test2</string>
 	<string name="action_sign_in">Sign in or create an account</string>
 	<string name="action_sign_in_short">Sign in</string>
 	<string name="error_invalid_email">This email address is invalid</string>

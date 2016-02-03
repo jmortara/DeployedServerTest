@@ -51,7 +51,9 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
 	private AutoCompleteTextView mUsernameView;	// username text field
 	private AutoCompleteTextView mEmailView;		// email text field
 	private EditText mPasswordView;					// password text field
-	private Button mSignInView;						// sign in / register button
+	private Button mSetUserToTest1View;				// sign in / register button
+	private Button mSetUserToTest2View;				// set user to test1 button
+	private Button mSignInView;						// set user to test2
 	private View mProgressView;						// login progress bar/wheel
 
 	@Override
@@ -68,15 +70,39 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
 		Log.d(TAG, "onCreate found an intent testParam of: " + testValue);
 
 		// assign UI references
-		mLoginFormView = (View) 						findViewById(R.id.login_form);
-		mUsernameView 	= (AutoCompleteTextView) 	findViewById(R.id.username);
-		mEmailView 		= (AutoCompleteTextView) 	findViewById(R.id.email);
-		mPasswordView 	= (EditText) 					findViewById(R.id.password);
-		mSignInView 	= (Button) 						findViewById(R.id.account_sign_in_or_register_button);
-		mProgressView 	= (View) 						findViewById(R.id.login_progress);
+		mLoginFormView 		= (View) 						findViewById(R.id.login_form);
+		mUsernameView 			= (AutoCompleteTextView) 	findViewById(R.id.username);
+		mEmailView 				= (AutoCompleteTextView) 	findViewById(R.id.email);
+		mPasswordView 			= (EditText) 					findViewById(R.id.password);
+		mSetUserToTest1View 	= (Button) 						findViewById(R.id.setUserToTest1_button);
+		mSetUserToTest2View	= (Button) 						findViewById(R.id.setUserToTest2_button);
+		mSignInView 			= (Button) 						findViewById(R.id.account_sign_in_or_register_button);
+		mProgressView 			= (View) 						findViewById(R.id.login_progress);
 
 		// set default values in text fields to expedite testing - TODO: remove
 		setDefaults();
+
+		// assign test user 1 behavior
+		mSetUserToTest1View.setOnClickListener(new OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				Log.d(TAG, "mSetUserToTest1View clicked");
+				setFieldsToTestUserNum(1);
+			}
+		});
+
+		// assign test user 2 behavior
+		mSetUserToTest2View.setOnClickListener(new OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				Log.d(TAG, "mSetUserToTest2View clicked");
+				setFieldsToTestUserNum(2);
+			}
+		});
 
 		// assign Sign In / Register button behavior
 		mSignInView.setOnClickListener(new OnClickListener()
@@ -90,25 +116,33 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
 		});
 	}
 
+	/**
+	 * Does not seem to work. Using buttons instead.
+	 */
 	private void setDefaults()
 	{
 		// emulator
 		if(Build.BRAND.equalsIgnoreCase("generic"))
 		{
 			Log.d(TAG, "setDefaults: running in EMULATOR");
-			mUsernameView.setText("test2");
-			mPasswordView.setText("test2pass");
-			mEmailView.setText("test2@wordwolfgame.com");
+			setFieldsToTestUserNum(2);
 		}
 		// device
 		else
 		{
 			Log.d(TAG, "setDefaults: running on DEVICE");
-			mUsernameView.setText("test1");
-			mPasswordView.setText("test1pass");
-			mEmailView.setText("test1@wordwolfgame.com");
+			setFieldsToTestUserNum(1);
 		}
 	}
+
+	private void setFieldsToTestUserNum(int num)
+	{
+		Log.d(TAG, "setFieldsToTestUserNum: " + num);
+		mUsernameView.setText("test" + num);
+		mPasswordView.setText("test" + num + "pass");
+		mEmailView.setText("test" + num + "@wordwolfgame.com");
+	}
+
 
 	/********************************************************
 	 * Attempt the Login once the user fields are filled in

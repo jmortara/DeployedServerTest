@@ -20,6 +20,7 @@ public class Model
 
 	public static Properties databaseProps = null;
 	public static LoginRequest userLogin = null;
+	public static String opponentUsername = null;
 
 	public static final String HOST = "wordwolfgame.com";	// WARNING - will connect to any site hosted on jasonmortara.com
 	public static final int PORT = 4001;

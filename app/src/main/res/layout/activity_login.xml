@@ -61,6 +61,24 @@
 				android:singleLine="true"/>
 
 			<Button
+				android:id="@+id/setUserToTest1_button"
+				style="?android:textAppearanceSmall"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="16dp"
+				android:text="@string/action_set_user_to_test_1"
+				android:textStyle="bold"/>
+
+			<Button
+				android:id="@+id/setUserToTest2_button"
+				style="?android:textAppearanceSmall"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="16dp"
+				android:text="@string/action_set_user_to_test_2"
+				android:textStyle="bold"/>
+
+			<Button
 				android:id="@+id/account_sign_in_or_register_button"
 				style="?android:textAppearanceSmall"
 				android:layout_width="match_parent"
