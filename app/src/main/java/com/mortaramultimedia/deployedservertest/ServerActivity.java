@@ -45,19 +45,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 {
 	private static final String TAG = "ServerActivity";
 
-	//message prefixes
-	public static final String ECHO								= "/echo:";
-	public static final String SET_USERNAME					= "/setUsername:";
-	public static final String GET_USERNAME					= "/getUsername";
-//	public static final String GET_OPPONENT_USERNAMES		= "/getOpponentUsernames";			// needs no colon or params
-	//public static final String GET_OPPONENT_PORTS			= "/getOpponentPorts";				//TODO // needs no colon or params
-	//public static final String MESSAGE_PLAYER_PORT		= "/messagePlayer_port_";			//TODO // must append colon
-	//public static final String SELECT_OPPONENT_PORT		= "/selectOpponent_port_";			//TODO // must append colon
-//	public static final String SELECT_OPPONENT_USERNAME	= "/selectOpponentUsername:";		// must append colon
-//	public static final String MESSAGE_OPPONENT 				= "/messageOpponent:";
-	public static final String SEND_NEW_CURRENT_SCORE		= "/sendNewCurrentScore:";
-
-	private ServerTask serverTask;				// inner async task
+	private ServerTask serverTask;				// inner async task which handles in/out socket streams
 	private DatabaseAsyncTask databaseTask;	// external async task
 	private LoginAsyncTask loginTask;			// external async task
 
@@ -70,7 +58,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	private CheckBox connectedCheckBox;
 	private CheckBox databaseCheckBox;
 	private CheckBox loginCheckBox;
-//	private String incomingMessage;
 
 
 	@Override
@@ -130,6 +117,12 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				userNameText.setText(username);
 			}
 		}
+
+		// Messages
+//		if(Model.incomingMessage != null)
+//		{
+			incomingText.setText(Model.incomingMessage);
+//		}
 	}
 
 /*
@@ -222,7 +215,8 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		Log.d(TAG, "handleSetUsernameButtonClick");
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
-		serverTask.sendOutgoingMessageWithPrefix(SET_USERNAME, msg);
+		//serverTask.sendOutgoingMessageWithPrefix(SET_USERNAME, msg);
+		//TODO add serverTask.sendOutgoingObject(SetUsernameRequest);
 	}
 
 	public void handleGetUsernameButtonClick(View view) throws IOException
@@ -230,7 +224,8 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		Log.d(TAG, "handleGetUsernameButtonClick");
 		hideSoftKeyboard();
 		String msg = outgoingText.getText().toString();
-		serverTask.sendOutgoingMessageWithPrefix(GET_USERNAME, null);
+		//serverTask.sendOutgoingMessageWithPrefix(GET_USERNAME, null);
+		//TODO add serverTask.sendOutgoingObject(GetUsernameRequest);
 	}
 
 	public void handleGetAllPlayersButtonClick(View view) throws IOException
@@ -355,7 +350,8 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 		Model.score = newScore;
 
-		serverTask.sendOutgoingMessageWithPrefix( SEND_NEW_CURRENT_SCORE, Model.score.toString() );
+		//serverTask.sendOutgoingMessageWithPrefix( SEND_NEW_CURRENT_SCORE, Model.score.toString() );	// deprecated
+		//TODO: add new Score update via writeObject()
 	}
 
 	public void handleLoginTestButtonClick(View view) throws IOException
@@ -678,9 +674,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				handleRequestToBecomeOpponent(((SelectOpponentRequest) obj));
 			}
 			/**
-			 * If receiving an OpponentBoundMessage, which is a message to this client from this player's opponent.
-			 */
-			/**
 			 * If receiving a SelectOpponentResponse, which is a response to a request to become another player's opponent.
 			 */
 			else if(obj instanceof SelectOpponentResponse)
@@ -754,6 +747,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			}
 		}
 
+		/*
 		public void sendOutgoingMessageWithPrefix( String prefix, String msg )
 		{
 			Log.d(TAG, "sendOutgoingMessageWithPrefix: Response from user: " + prefix + ", " + msg);
@@ -781,15 +775,15 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				{
 					completeMessageToServer = prefix;
 				}
-				/*else if ( prefix.equals( GET_OPPONENT_USERNAMES ) )
+				else if ( prefix.equals( GET_OPPONENT_USERNAMES ) )
 				{
 					completeMessageToServer = prefix;
 				}
 				else if ( prefix.equals( SELECT_OPPONENT_USERNAME ) )
 				{
 					completeMessageToServer = prefix + msg;
-				}*/
-				/*
+				}
+
 				else if ( prefix.equals( GET_OPPONENT_PORTS ) )
 				{
 					completeMessageToServer = prefix;
@@ -802,11 +796,11 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				{
 					completeMessageToServer = prefix + msg + ":";			// ex: 'selectOpponent_port_12345:'
 				}
-				*/
-				/*else if ( prefix.equals( MESSAGE_OPPONENT ) )
+
+				else if ( prefix.equals( MESSAGE_OPPONENT ) )
 				{
 					completeMessageToServer = prefix + msg;					// ex: 'messageOpponent:hello'
-				}*/
+				}
 				else if ( prefix.equals( SEND_NEW_CURRENT_SCORE ) )
 				{
 					completeMessageToServer = prefix + msg;					// ex: 'sendNewCurrentScore:12'
@@ -830,29 +824,33 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			}
 
 		}
+		*/
 
 		private void handleSimpleMessage(SimpleMessage msgObj)
 		{
 			Log.d(TAG, "handleSimpleMessage: " + msgObj.getMsg());
+			publishObject(msgObj);
 		}
 
 		private void handleLoginResponse(LoginResponse response)
 		{
 			Log.d(TAG, "handleLoginResponse: " + response);
+			publishObject(response);
 		}
 
 		private void handleGetPlayerListResponse(GetPlayerListResponse response)
 		{
 			Log.d(TAG, "handleGetPlayerListResponse: " + response);
+			publishObject(response);
 			Log.d(TAG, "handleGetPlayerListResponse: player list: " + response.getPlayersCopy());
 		}
 
 		private void handleRequestToBecomeOpponent(SelectOpponentRequest request)
 		{
 			Log.d(TAG, "handleRequestToBecomeOpponent: " + request);
+			publishObject(request);
 			Log.d(TAG, "handleRequestToBecomeOpponent: YOU HAVE BEEN OFFERED TO BECOME AN OPPONENT OF: " + request.getSourceUsername());
 
-//			incomingText.setText(request.toString());		// causes wrong-thread UI error
 
 
 			// TODO: WE ARE AUTOMATICALLY ACCEPTING THE REQUEST HERE
@@ -878,6 +876,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		private void handleSelectOpponentResponse(SelectOpponentResponse response)
 		{
 			Log.d(TAG, "handleSelectOpponentResponse: " + response);
+			publishObject(response);
 			if(response.getRequestAccepted() == true)
 			{
 				Log.d(TAG, "handleRequestToBecomeOpponent: REQUEST ACCEPTED! from: " + response.getSourceUsername());
@@ -891,16 +890,26 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		private void handleMessageFromOpponent(OpponentBoundMessage msgObj)
 		{
 			Log.d(TAG, "handleMessageFromOpponent: " + msgObj);
-//			incomingText.setText(msgObj.getMsg());
+			publishObject(msgObj);
 		}
 
-
+		/**
+		 * Store the most recent incoming message Object as a String in the Model, and use the AsyncTasks's onProgressUpdate to display it in the test UI.
+		 * This effectively displays incoming messages in the UI while the ServerTask thread is running.
+		 * @param obj
+		 */
+		private void publishObject(Object obj)
+		{
+			Model.incomingMessage = obj.toString();
+			publishProgress(1);
+		}
 
 
 		@Override
 		protected void onProgressUpdate(Integer... progress)
 		{
-			// Log.d(TAG, "onProgressUpdate: " + progress);
+			 Log.d(TAG, "onProgressUpdate");
+			updateUI();
 		}
 
 		@Override
