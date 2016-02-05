@@ -27,7 +27,8 @@ public class Model
 	public static final int PORT = 4001;
 
 	public static Boolean connected 	= false;
-	public static Boolean dbTestOK 	= false;
+	public static Boolean connectedToDatabase 	= false;
+//	public static Boolean dbTestOK 	= false;
 	public static Boolean loggedIn 	= false;
 	public static Integer score 		= 0;
 

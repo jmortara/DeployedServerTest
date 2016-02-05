@@ -19,6 +19,7 @@ import com.mortaramultimedia.deployedservertest.database.LoginAsyncTask;
 import com.mortaramultimedia.deployedservertest.database.DatabaseAsyncTask;
 import com.mortaramultimedia.deployedservertest.interfaces.IAsyncTaskCompleted;
 import com.mortaramultimedia.wordwolf.shared.constants.Constants;
+import com.mortaramultimedia.wordwolf.shared.messages.ConnectToDatabaseResponse;
 import com.mortaramultimedia.wordwolf.shared.messages.GetPlayerListRequest;
 import com.mortaramultimedia.wordwolf.shared.messages.GetPlayerListResponse;
 import com.mortaramultimedia.wordwolf.shared.messages.LoginRequest;
@@ -93,9 +94,9 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		}
 
 		// DB Test UI
-		testDatabaseButton.setClickable(!Model.dbTestOK);
-		databaseCheckBox.setChecked(Model.dbTestOK);
-		if (Model.dbTestOK)
+		testDatabaseButton.setClickable(!Model.connectedToDatabase);
+		databaseCheckBox.setChecked(Model.connectedToDatabase);
+		if (Model.connectedToDatabase)
 		{
 			testDatabaseButton.setText("DB\nOK");
 		}
@@ -653,6 +654,13 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				handleSimpleMessage(((SimpleMessage) obj));
 			}
 			/**
+			 * If receiving a ConnectToDatabaseResponse, if it is a successful one, that means we can then attempt a login or create account.
+			 */
+			if(obj instanceof ConnectToDatabaseResponse)
+			{
+				handleConnectToDatabaseResponse(((ConnectToDatabaseResponse) obj));
+			}
+			/**
 			 * If receiving a LoginResponse...
 			 */
 			else if(obj instanceof LoginResponse)
@@ -832,6 +840,13 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			publishObject(msgObj);
 		}
 
+		private void handleConnectToDatabaseResponse(ConnectToDatabaseResponse response)
+		{
+			Log.d(TAG, "handleConnectToDatabaseResponse: " + response);
+			Model.connectedToDatabase = response.getSuccess();
+			publishObject(response);
+		}
+
 		private void handleLoginResponse(LoginResponse response)
 		{
 			Log.d(TAG, "handleLoginResponse: " + response);
@@ -931,10 +946,12 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		if(requestCode == 1)	// see the note in the startActivityForResult above
 		{
 			Log.d(TAG, "onActivityResult: LOGIN SUCCESS returned from LoginActivity. requestCode: " + requestCode);
+			Model.loggedIn = true;
 		}
 		else
 		{
 			Log.d(TAG, "onActivityResult: LOGIN FAILURE returned from LoginActivity. requestCode: " + requestCode);
+			Model.loggedIn = false;
 		}
 		updateUI();
 	}

@@ -89,7 +89,7 @@ public class LoginAsyncTask extends AsyncTask<Void, Integer, Integer>
 			Log.d(TAG, "doInBackground: Attempting user login through server command");
 			try
 			{
-				// try a login	//TODO get this from input fields
+				// try a login
 //				LoginMessage newLogin = new LoginMessage(1, "test1", "test1pass", "test1@wordwolfgame.com");    //TODO: HARDCODED
 //				Model.userLogin = newLogin;
 //				loginSucceeded = MySQLAccessTester.attemptLogin();
@@ -106,13 +106,13 @@ public class LoginAsyncTask extends AsyncTask<Void, Integer, Integer>
 
 		//TODO:FIX
 		// store result of login attempt in Model
-		if(loginSucceeded == 0)
+		/*if(loginSucceeded == 0)
 		{
 			Model.loggedIn = false;
 		}
 		else Model.loggedIn = true;
 
-		Log.d(TAG, "doInBackground: login succeeded? " + Model.loggedIn);
+		Log.d(TAG, "doInBackground: login succeeded? ****************************** " + Model.loggedIn);*/
 
 		return loginSucceeded;
 	}

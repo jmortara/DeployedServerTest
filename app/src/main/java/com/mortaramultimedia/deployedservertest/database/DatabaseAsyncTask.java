@@ -100,13 +100,13 @@ public class DatabaseAsyncTask extends AsyncTask<Void, Integer, Integer>
 			}
 		}
 		// store result of login attempt in Model
-		if(testSucceeded == 0)
+		/*if(testSucceeded == 0)
 		{
 			Model.dbTestOK = false;
 		}
 		else Model.dbTestOK = true;
 
-		Log.d(TAG, "doInBackground: DB test passed? " + Model.dbTestOK);
+		Log.d(TAG, "doInBackground: DB test passed? " + Model.dbTestOK);*/
 
 		return testSucceeded;
 	}
