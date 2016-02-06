@@ -351,8 +351,33 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	{
 		Log.d(TAG, "handleAcceptOpponentButtonClick");
 		hideSoftKeyboard();
-		SelectOpponentResponse response = new SelectOpponentResponse(true, "TBD", "TBD");	//TODO: retrieve opponent username from request, which should be stored in Model
-		serverTask.sendOutgoingObject(response);
+
+		// ignore if no request exists to respond to
+		if (Model.selectOpponentRequest == null)
+		{
+			Log.d(TAG, "handleAcceptOpponentButtonClick: no SelectOpponentRequest has been received and stored. Ignoring.");
+			return;
+		}
+
+		Log.d(TAG, "handleRequestToBecomeOpponent: Model.connected: " + Model.connected);
+		Log.d(TAG, "handleRequestToBecomeOpponent: Model.loggedIn: " + Model.loggedIn);
+		Log.d(TAG, "handleRequestToBecomeOpponent: Model.userLogin.getUserName(): " + Model.userLogin.getUserName());
+		Log.d(TAG, "handleRequestToBecomeOpponent: Model.selectOpponentRequest: " + Model.selectOpponentRequest);
+
+		SelectOpponentResponse response = null;
+		try
+		{
+			if (Model.connected && Model.loggedIn && Model.userLogin.getUserName() != null)
+			{
+				Log.d(TAG, "handleRequestToBecomeOpponent: accepting opponent request: " + Model.selectOpponentRequest);
+				response = new SelectOpponentResponse(true, Model.userLogin.getUserName(), Model.selectOpponentRequest.getSourceUsername());
+				serverTask.sendOutgoingObject(response);
+			}
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public void handleMessageOpponentButtonClick(View view) throws IOException
@@ -883,15 +908,16 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			publishObject(request);
 			Log.d(TAG, "handleRequestToBecomeOpponent: YOU HAVE BEEN OFFERED TO BECOME AN OPPONENT OF: " + request.getSourceUsername());
 
-
+			// store the request in the Model until it is accepted or rejected by the user
+			Model.selectOpponentRequest = request;
 
 			// TODO: WE ARE AUTOMATICALLY ACCEPTING THE REQUEST HERE
-			Log.d(TAG, "handleRequestToBecomeOpponent: Model.connected: " + Model.connected);
+			/*Log.d(TAG, "handleRequestToBecomeOpponent: Model.connected: " + Model.connected);
 			Log.d(TAG, "handleRequestToBecomeOpponent: Model.loggedIn: " + Model.loggedIn);
 			Log.d(TAG, "handleRequestToBecomeOpponent: Model.userLogin.getUserName(): " + Model.userLogin.getUserName());
 			try
 			{
-				if (Model.connected && /*Model.loggedIn &&*/ Model.userLogin.getUserName() != null)
+				if (Model.connected && *//*Model.loggedIn &&*//* Model.userLogin.getUserName() != null)
 				{
 					Log.d(TAG, "handleRequestToBecomeOpponent: accepting opponent request: " + Model.userLogin.getUserName());
 					SelectOpponentResponse response = new SelectOpponentResponse(true, Model.userLogin.getUserName(), request.getSourceUsername());
@@ -902,7 +928,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			catch(Exception e)
 			{
 				e.printStackTrace();
-			}
+			}*/
 		}
 
 		private void handleSelectOpponentResponse(SelectOpponentResponse response)
