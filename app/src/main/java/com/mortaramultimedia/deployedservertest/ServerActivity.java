@@ -22,24 +22,18 @@ import com.mortaramultimedia.wordwolf.shared.constants.Constants;
 import com.mortaramultimedia.wordwolf.shared.messages.ConnectToDatabaseResponse;
 import com.mortaramultimedia.wordwolf.shared.messages.GetPlayerListRequest;
 import com.mortaramultimedia.wordwolf.shared.messages.GetPlayerListResponse;
-import com.mortaramultimedia.wordwolf.shared.messages.LoginRequest;
 import com.mortaramultimedia.wordwolf.shared.messages.LoginResponse;
 import com.mortaramultimedia.wordwolf.shared.messages.OpponentBoundMessage;
 import com.mortaramultimedia.wordwolf.shared.messages.SelectOpponentRequest;
 import com.mortaramultimedia.wordwolf.shared.messages.SelectOpponentResponse;
 import com.mortaramultimedia.wordwolf.shared.messages.SimpleMessage;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-
-import messages.LoginMessage;
 
 
 public class ServerActivity extends Activity implements IAsyncTaskCompleted
@@ -50,15 +44,39 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	private DatabaseAsyncTask databaseTask;	// external async task
 	private LoginAsyncTask loginTask;			// external async task
 
-	private Button connectButton;
-	private Button testDatabaseButton;
+	// connection, database and login View references
+	private Button connectToServerButton;
+	private CheckBox connectedToServerCheckBox;
+	private Button connectToDatabaseButton;
+	private CheckBox connectedToDatabaseCheckBox;
 	private Button loginButton;
-	private TextView userNameText;
-	private TextView outgoingText;
+	private CheckBox loggedInCheckBox;
+
+	// username field references
+	private TextView usernameText;
+	private TextView opponentUsernameText;
+
+	// input text and related refs
+	private TextView inputText;
+	private Button hideKeyboardButton;
+	private Button clearInputButton;
+
+	// opponent communications buttons refs
+	private Button getAllPlayersButton;
+	private Button getOpponentsButton;
+	private Button selectOpponentButton;
+	private Button acceptOpponentButton;
+	private Button messageOpponentButton;
+
+	// gameplay-related button refs
+	private Button startGameButton;
+	private Button sendMoveButton;
+	private Button sendScoreButton;
+	private Button endGameButton;
+
+	// incoming objects/messages text refs
 	private TextView incomingText;
-	private CheckBox connectedCheckBox;
-	private CheckBox databaseCheckBox;
-	private CheckBox loginCheckBox;
+
 
 
 	@Override
@@ -68,15 +86,31 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		setContentView(R.layout.activity_server);
 
 		// UI refs
-		connectButton 		= (Button)   findViewById(R.id.connectButton);
-		testDatabaseButton= (Button)   findViewById(R.id.testDatabaseButton);
-		loginButton 		= (Button)   findViewById(R.id.loginButton);
-		userNameText		= (TextView) findViewById(R.id.userNameText);
-		outgoingText 		= (EditText) findViewById(R.id.outgoingText);
-		incomingText 		= (TextView) findViewById(R.id.incomingText);
-		connectedCheckBox = (CheckBox) findViewById(R.id.connectedCheckBox);
-		databaseCheckBox 	= (CheckBox) findViewById(R.id.databaseCheckBox);
-		loginCheckBox 		= (CheckBox) findViewById(R.id.loginCheckBox);
+		connectToServerButton 			= (Button)   findViewById(R.id.connectToServerButton);
+		connectedToServerCheckBox 		= (CheckBox) findViewById(R.id.connectedToServerCheckBox);
+		connectToDatabaseButton 		= (Button)   findViewById(R.id.connectToDatabaseButton);
+		connectedToDatabaseCheckBox 	= (CheckBox) findViewById(R.id.connectedToDatabaseCheckBox);
+		loginButton 						= (Button)   findViewById(R.id.loginButton);
+		loggedInCheckBox 					= (CheckBox) findViewById(R.id.loggedInCheckBox);
+
+		usernameText 						= (TextView) findViewById(R.id.usernameText);
+		opponentUsernameText 			= (TextView) findViewById(R.id.opponentUsernameText);
+
+		inputText 							= (EditText) findViewById(R.id.inputText);
+		hideKeyboardButton 				= (Button)   findViewById(R.id.hideKeyboardButton);
+		clearInputButton					= (Button)   findViewById(R.id.clearInputButton);
+
+		getAllPlayersButton				= (Button)   findViewById(R.id.getAllPlayersButton);
+		getOpponentsButton 				= (Button)   findViewById(R.id.getOpponentsButton);
+		selectOpponentButton 			= (Button)   findViewById(R.id.selectOpponentButton);
+		acceptOpponentButton 			= (Button)   findViewById(R.id.acceptOpponentButton);
+
+		startGameButton 					= (Button)   findViewById(R.id.startGameButton);
+		sendMoveButton 					= (Button)   findViewById(R.id.sendMoveButton);
+		sendScoreButton 					= (Button)   findViewById(R.id.sendScoreButton);
+		endGameButton 						= (Button)   findViewById(R.id.endGameButton);
+
+		incomingText 						= (TextView) findViewById(R.id.incomingText);
 
 		updateUI();
 	}
@@ -85,25 +119,25 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	{
 		Log.d(TAG, "updateUI");
 
-		// Connection UI
-		connectButton.setClickable(!Model.connected);
-		connectedCheckBox.setChecked(Model.connected);
+		// Server Connection UI
+		connectToServerButton.setClickable(!Model.connected);
+		connectedToServerCheckBox.setChecked(Model.connected);
 		if (Model.connected)
 		{
-			connectButton.setText("Server\nOK");
+			connectToServerButton.setText("Server\nOK");
 		}
 
-		// DB Test UI
-		testDatabaseButton.setClickable(!Model.connectedToDatabase);
-		databaseCheckBox.setChecked(Model.connectedToDatabase);
+		// DB Connection UI
+		connectToDatabaseButton.setClickable(!Model.connectedToDatabase);
+		connectedToDatabaseCheckBox.setChecked(Model.connectedToDatabase);
 		if (Model.connectedToDatabase)
 		{
-			testDatabaseButton.setText("DB\nOK");
+			connectToDatabaseButton.setText("DB\nOK");
 		}
 
 		// Login UI
 		loginButton.setClickable(!Model.loggedIn);
-		loginCheckBox.setChecked(Model.loggedIn);
+		loggedInCheckBox.setChecked(Model.loggedIn);
 		if (Model.loggedIn)
 		{
 			loginButton.setText("Logged\nIn");
@@ -115,15 +149,20 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			String username = Model.userLogin.getUserName();
 			if (username != null)
 			{
-				userNameText.setText(username);
+				usernameText.setText(username);
 			}
 		}
 
+		// Opponent info
+		if (Model.opponentUsername != null)
+		{
+			opponentUsernameText.setText(Model.opponentUsername);
+		}
+
 		// Messages
-//		if(Model.incomingMessage != null)
-//		{
-			incomingText.setText(Model.incomingMessage);
-//		}
+		incomingText.setText(Model.incomingMessage);
+
+
 	}
 
 /*
@@ -147,18 +186,20 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	}
 */
 
+	////////////////////////////////////////////////////////
+	// Server connection, Database Connection, and Login
 	/**
-	 * Connect to the Word Wolf Server
+	 * Connect to the WordWolf server.
 	 * @param view
 	 * @throws IOException
 	 */
-	public void handleConnectButtonClick(View view) throws IOException
+	public void handleConnectToServerButtonClick(View view) throws IOException
 	{
-		Log.d(TAG, "handleConnectButtonClick");
+		Log.d(TAG, "handleConnectToServerButtonClick");
 
 		if (Model.connected)
 		{
-			Log.d(TAG, "handleConnectButtonClick: already connected!");
+			Log.d(TAG, "handleConnectToServerButtonClick: already connected!");
 			return;
 		}
 		// Start network tasks separate from the main UI thread
@@ -169,117 +210,18 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		}
 		else
 		{
-			Log.d(TAG, "handleConnectButtonClick: not connected");
+			Log.d(TAG, "handleConnectToServerButtonClick: not connected");
 		}
 	}
 
-	public void handleOutgoingTextClick(View view)
+	/**
+	 * Connect to the WordWolf database.
+	 * @param view
+	 * @throws IOException
+	 */
+	public void handleConnectToDatabaseButtonClick(View view) throws IOException
 	{
-		Log.d(TAG, "handleOutgoingTextClick");
-		clearOutgoingText();
-	}
-
-	private void clearOutgoingText()
-	{
-		Log.d(TAG, "clearOutgoingText");
-		outgoingText.setText("");
-	}
-
-	public void handleDoneButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleDoneButtonClick");
-		hideSoftKeyboard();
-	}
-
-	public void handleMessageButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleMessageButtonClick");
-		hideSoftKeyboard();
-		String msg = outgoingText.getText().toString();
-		SimpleMessage msgObj = new SimpleMessage(msg, true);
-//		serverTask.sendOutgoingMessageWithPrefix(ECHO, msg);
-		serverTask.sendOutgoingObject(msgObj);
-	}
-
-	public void handleEchoButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleEchoButtonClick");
-		hideSoftKeyboard();
-		String msg = outgoingText.getText().toString();
-		SimpleMessage msgObj = new SimpleMessage(msg, false);
-//		serverTask.sendOutgoingMessageWithPrefix(ECHO, msg);
-		serverTask.sendOutgoingObject(msgObj);
-	}
-
-	public void handleSetUsernameButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleSetUsernameButtonClick");
-		hideSoftKeyboard();
-		String msg = outgoingText.getText().toString();
-		//serverTask.sendOutgoingMessageWithPrefix(SET_USERNAME, msg);
-		//TODO add serverTask.sendOutgoingObject(SetUsernameRequest);
-	}
-
-	public void handleGetUsernameButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleGetUsernameButtonClick");
-		hideSoftKeyboard();
-		String msg = outgoingText.getText().toString();
-		//serverTask.sendOutgoingMessageWithPrefix(GET_USERNAME, null);
-		//TODO add serverTask.sendOutgoingObject(GetUsernameRequest);
-	}
-
-	public void handleGetAllPlayersButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleGetAllPlayersButtonClick");
-		hideSoftKeyboard();
-		GetPlayerListRequest getPlayerListRequest = new GetPlayerListRequest(GetPlayerListRequest.REQUEST_TYPE_ALL_PLAYERS);
-		serverTask.sendOutgoingObject(getPlayerListRequest);
-	}
-
-
-/*
-	public void handleGetOpponentsButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleGetOpponentsButtonClick");
-		hideSoftKeyboard();
-		String msg = outgoingText.getText().toString();
-		//serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_PORTS, null );
-		serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_USERNAMES, null );
-	}
-*/
-
-	public void handleSelectOpponentButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleSelectOpponentButtonClick");
-		hideSoftKeyboard();
-		String msg = outgoingText.getText().toString();
-		//serverTask.sendOutgoingMessageWithPrefix( SELECT_OPPONENT_PORT, msg );
-//		serverTask.sendOutgoingMessageWithPrefix(SELECT_OPPONENT_USERNAME, msg);	// deprecated system
-		SelectOpponentRequest request = new SelectOpponentRequest(Model.userLogin.getUserName(), msg);
-		serverTask.sendOutgoingObject(request);
-	}
-
-	public void handleMessageOpponentButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleMessageOpponentButtonClick");
-		hideSoftKeyboard();
-		String msg = outgoingText.getText().toString();
-		//serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_USERNAMES, null );	// deprecated system
-		try
-		{
-			OpponentBoundMessage msgObj = new OpponentBoundMessage(msg, false);	// this constructor assumes the server handles figuring out who is the opponent for the msg destination
-			serverTask.sendOutgoingObject(msgObj);
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-		}
-	}
-
-	public void handleTestDatabaseButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleTestDatabaseButtonClick");
+		Log.d(TAG, "handleConnectToDatabaseButtonClick");
 		databaseTask = new DatabaseAsyncTask(this, this);
 
 		// workaround for issues with execute() not working properly on AsyncTasks
@@ -300,7 +242,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	 */
 	public void handleLoginButtonClick(View view) throws IOException
 	{
-		Log.d(TAG, "handleTestDatabaseButtonClick");
+		Log.d(TAG, "handleLoginButtonClick");
 
 		// create an Intent, with optional additional params
 		Context thisContext = ServerActivity.this;
@@ -310,6 +252,172 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		// start the activity
 		startActivityForResult(intent, 1);		//TODO: note that in order for this class' onActivityResult to be called when the LoginActivity has completed, the requestCode here must be > 0
 	}
+
+
+	/////////////////////////////////////////////////////////////
+	// Text Entry, Hide Keyboard, and Clear Input
+	/////////////////////////////////////////////////////////////
+
+	public void handleInputTextClick(View view)
+	{
+		Log.d(TAG, "handleInputTextClick");
+		clearInputText();
+	}
+
+	public void handleHideSoftKeyboardButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleHideSoftKeyboardButtonClick");
+		hideSoftKeyboard();
+	}
+
+	private void clearInputText()
+	{
+		Log.d(TAG, "clearInputText");
+		inputText.setText("");
+	}
+
+
+	/////////////////////////////////////////////////////////////
+	// Message Sending, with or without Echo
+	/////////////////////////////////////////////////////////////
+
+	public void handleSendMessageButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleSendMessageButtonClick");
+		hideSoftKeyboard();
+		String msg = inputText.getText().toString();
+		SimpleMessage msgObj = new SimpleMessage(msg, false);
+//		serverTask.sendOutgoingMessageWithPrefix(ECHO, msg);	// deprecated
+		serverTask.sendOutgoingObject(msgObj);
+	}
+
+	public void handleEchoMessageButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleEchoMessageButtonClick");
+		hideSoftKeyboard();
+		String msg = inputText.getText().toString();
+		SimpleMessage msgObj = new SimpleMessage(msg, true);
+//		serverTask.sendOutgoingMessageWithPrefix(ECHO, msg);
+		serverTask.sendOutgoingObject(msgObj);
+	}
+
+	public void handleClearInputTextButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleClearInputTextButtonClick");
+		clearInputText();
+	}
+
+	private void hideSoftKeyboard()
+	{
+		Log.d(TAG, "hideSoftKeyboard");
+		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(inputText.getWindowToken(), 0);
+	}
+
+
+	/////////////////////////////////////////////////////////////
+	// Opponent Communications
+	/////////////////////////////////////////////////////////////
+
+	public void handleGetAllPlayersButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleGetAllPlayersButtonClick");
+		hideSoftKeyboard();
+		GetPlayerListRequest getPlayerListRequest = new GetPlayerListRequest(GetPlayerListRequest.REQUEST_TYPE_ALL_PLAYERS);
+		serverTask.sendOutgoingObject(getPlayerListRequest);
+	}
+
+	public void handleGetOpponentsButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleGetOpponentsButtonClick: this button is not currently functional.");
+		hideSoftKeyboard();
+//		String msg = inputText.getText().toString();
+		//serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_PORTS, null );			// deprecated
+		//serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_USERNAMES, null );	// deprecated
+	}
+
+	public void handleSelectOpponentButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleSelectOpponentButtonClick");
+		hideSoftKeyboard();
+		String msg = inputText.getText().toString();
+		//serverTask.sendOutgoingMessageWithPrefix( SELECT_OPPONENT_PORT, msg );
+//		serverTask.sendOutgoingMessageWithPrefix(SELECT_OPPONENT_USERNAME, msg);	// deprecated system
+		SelectOpponentRequest request = new SelectOpponentRequest(Model.userLogin.getUserName(), msg);
+		serverTask.sendOutgoingObject(request);
+	}
+
+	public void handleAcceptOpponentButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleAcceptOpponentButtonClick");
+		hideSoftKeyboard();
+		SelectOpponentResponse response = new SelectOpponentResponse(true, "TBD", "TBD");	//TODO: retrieve opponent username from request, which should be stored in Model
+		serverTask.sendOutgoingObject(response);
+	}
+
+	public void handleMessageOpponentButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleMessageOpponentButtonClick");
+		hideSoftKeyboard();
+		String msg = inputText.getText().toString();
+		//serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_USERNAMES, null );	// deprecated system
+		try
+		{
+			OpponentBoundMessage msgObj = new OpponentBoundMessage(msg, false);	// this constructor assumes the server handles figuring out who is the opponent for the msg destination
+			serverTask.sendOutgoingObject(msgObj);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+
+	/////////////////////////////////////////////////////////////
+	// Gameplay Communications
+	/////////////////////////////////////////////////////////////
+
+	public void handleStartGameButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleStartGameButtonClick: BEHAVIOR TBD");	//TODO: add behavior
+	}
+
+	public void handleSendMoveButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleSendMoveButtonClick: BEHAVIOR TBD");	//TODO: add behavior
+	}
+
+	public void handleSendScoreButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleSendScoreButtonClick");
+		hideSoftKeyboard();
+		String msg = inputText.getText().toString();
+		Integer newScore;
+		try
+		{
+			newScore = Integer.parseInt( msg );
+		}
+		catch ( Error e )
+		{
+			// just substitute an incremented score if the conversion was invalid
+			newScore = Model.score + 1;
+		}
+
+		Model.score = newScore;
+
+		//serverTask.sendOutgoingMessageWithPrefix( SEND_NEW_CURRENT_SCORE, Model.score.toString() );	// deprecated
+		//TODO: add new Score update via writeObject()
+	}
+
+	private void handleEndGameButtonClick()
+	{
+		Log.d(TAG, "handleEndGameButtonClick: BEHAVIOR TBD");	//TODO: add behavior
+	}
+
+
+	/////////////////////////////////////////////////////////////
+	// Unused button behaviors
+	/////////////////////////////////////////////////////////////
 
 	// original login button handler -- attempted login with hardcoded credentials
 /*	public void handleLoginButtonClick(View view) throws IOException
@@ -332,52 +440,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			loginTask.execute();
 		}
 	}*/
-
-	public void handleSendNewScoreOfButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleSendNewScoreOfButtonClick");
-		hideSoftKeyboard();
-		String msg = outgoingText.getText().toString();
-		Integer newScore;
-		try
-		{
-			newScore = Integer.parseInt( msg );
-		}
-		catch ( Error e )
-		{
-			// just substitute an incremented score if the conversion was invalid
-			newScore = Model.score + 1;
-		}
-
-		Model.score = newScore;
-
-		//serverTask.sendOutgoingMessageWithPrefix( SEND_NEW_CURRENT_SCORE, Model.score.toString() );	// deprecated
-		//TODO: add new Score update via writeObject()
-	}
-
-	public void handleLoginTestButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleLoginTestButtonClick: USING HARDCODE VALUES, NOT INPUT FIELD DATA");
-		hideSoftKeyboard();
-
-		LoginRequest testLoginRequest = new LoginRequest(2, "test2", "test2pass", "test2@wordwolfgame.com");
-		Model.userLogin = testLoginRequest;
-		serverTask.sendOutgoingObject(testLoginRequest);
-	}
-
-	private void hideSoftKeyboard()
-	{
-		Log.d(TAG, "hideSoftKeyboard");
-		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-		imm.hideSoftInputFromWindow(outgoingText.getWindowToken(), 0);
-	}
-
-	public void handleClearButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleClearButtonClick");
-		clearOutgoingText();
-	}
-
 	/*
 	public void handleIncomingMessage( String msg )
 	{
@@ -385,6 +447,32 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		incomingText.setText( "TEST" );
 	}
 	*/
+
+	/*public void handleLoginButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleLoginTestButtonClick: USING HARDCODE VALUES, NOT INPUT FIELD DATA");
+		hideSoftKeyboard();
+
+		LoginRequest testLoginRequest = new LoginRequest(2, "test2", "test2pass", "test2@wordwolfgame.com");
+		Model.userLogin = testLoginRequest;
+		serverTask.sendOutgoingObject(testLoginRequest);
+	}*/
+
+	/*public void handleSetUsernameButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleSetUsernameButtonClick");
+		hideSoftKeyboard();
+		String msg = inputText.getText().toString();
+		//serverTask.sendOutgoingMessageWithPrefix(SET_USERNAME, msg);
+	}*/
+
+	/*public void handleGetUsernameButtonClick(View view) throws IOException
+	{
+		Log.d(TAG, "handleGetUsernameButtonClick");
+		hideSoftKeyboard();
+		String msg = inputText.getText().toString();
+		//serverTask.sendOutgoingMessageWithPrefix(GET_USERNAME, null);
+	}*/
 
 	/****************************************************************************************
 	 * ServerTask - AsyncTask which handles server connections and messaging
@@ -429,11 +517,15 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				catch (UnknownHostException e)
 				{
 					System.err.println("Don't know about host : " + Model.HOST);
-					System.exit(1);
+//					System.exit(1);	// exit app
 //					s_out.close();
 					try
 					{
 						s_objOut.close();
+					}
+					catch(RuntimeException e2)
+					{
+						System.err.println("Object output stream may be null or unavailable to close.");
 					}
 					catch (IOException e1)
 					{
@@ -443,6 +535,10 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 					{
 //						s_in.close();
 						s_objIn.close();
+					}
+					catch(RuntimeException e3)
+					{
+						System.err.println("Object input stream may be null or unavailable to close.");
 					}
 					catch (IOException e1)
 					{
@@ -755,6 +851,108 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			}
 		}
 
+		private void handleSimpleMessage(SimpleMessage msgObj)
+		{
+			Log.d(TAG, "handleSimpleMessage: " + msgObj.getMsg());
+			publishObject(msgObj);
+		}
+
+		private void handleConnectToDatabaseResponse(ConnectToDatabaseResponse response)
+		{
+			Log.d(TAG, "handleConnectToDatabaseResponse: " + response);
+			Model.connectedToDatabase = response.getSuccess();
+			publishObject(response);
+		}
+
+		private void handleLoginResponse(LoginResponse response)
+		{
+			Log.d(TAG, "handleLoginResponse: " + response);
+			publishObject(response);
+		}
+
+		private void handleGetPlayerListResponse(GetPlayerListResponse response)
+		{
+			Log.d(TAG, "handleGetPlayerListResponse: " + response);
+			publishObject(response);
+			Log.d(TAG, "handleGetPlayerListResponse: player list: " + response.getPlayersCopy());
+		}
+
+		private void handleRequestToBecomeOpponent(SelectOpponentRequest request)
+		{
+			Log.d(TAG, "handleRequestToBecomeOpponent: " + request);
+			publishObject(request);
+			Log.d(TAG, "handleRequestToBecomeOpponent: YOU HAVE BEEN OFFERED TO BECOME AN OPPONENT OF: " + request.getSourceUsername());
+
+
+
+			// TODO: WE ARE AUTOMATICALLY ACCEPTING THE REQUEST HERE
+			Log.d(TAG, "handleRequestToBecomeOpponent: Model.connected: " + Model.connected);
+			Log.d(TAG, "handleRequestToBecomeOpponent: Model.loggedIn: " + Model.loggedIn);
+			Log.d(TAG, "handleRequestToBecomeOpponent: Model.userLogin.getUserName(): " + Model.userLogin.getUserName());
+			try
+			{
+				if (Model.connected && /*Model.loggedIn &&*/ Model.userLogin.getUserName() != null)
+				{
+					Log.d(TAG, "handleRequestToBecomeOpponent: accepting opponent request: " + Model.userLogin.getUserName());
+					SelectOpponentResponse response = new SelectOpponentResponse(true, Model.userLogin.getUserName(), request.getSourceUsername());
+					response.setRequestAccepted(true);	//TODO: roll into response obj params
+					sendOutgoingObject(response);
+				}
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+		}
+
+		private void handleSelectOpponentResponse(SelectOpponentResponse response)
+		{
+			Log.d(TAG, "handleSelectOpponentResponse: " + response);
+			publishObject(response);
+			if(response.getRequestAccepted() == true)
+			{
+				Log.d(TAG, "handleRequestToBecomeOpponent: REQUEST ACCEPTED! from: " + response.getSourceUsername());
+				Model.opponentUsername = response.getSourceUsername();
+			}
+			else
+			{
+				Log.d(TAG, "handleRequestToBecomeOpponent: REQUEST REJECTED! from: " + response.getSourceUsername());
+			}
+		}
+
+		private void handleMessageFromOpponent(OpponentBoundMessage msgObj)
+		{
+			Log.d(TAG, "handleMessageFromOpponent: " + msgObj);
+			publishObject(msgObj);
+		}
+
+		/**
+		 * Store the most recent incoming message Object as a String in the Model, and use the AsyncTasks's onProgressUpdate to display it in the test UI.
+		 * This effectively displays incoming messages in the UI while the ServerTask thread is running.
+		 * @param obj
+		 */
+		private void publishObject(Object obj)
+		{
+			Model.incomingMessage = obj.toString();
+			publishProgress(1);
+		}
+
+
+		@Override
+		protected void onProgressUpdate(Integer... progress)
+		{
+			 Log.d(TAG, "onProgressUpdate");
+			updateUI();
+		}
+
+		@Override
+		protected void onPostExecute(Integer result)
+		{
+			String str = "onPostExecute: " + result;
+			Log.d(TAG, str);
+			updateUI();
+		}
+
 		/*
 		public void sendOutgoingMessageWithPrefix( String prefix, String msg )
 		{
@@ -834,106 +1032,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		}
 		*/
 
-		private void handleSimpleMessage(SimpleMessage msgObj)
-		{
-			Log.d(TAG, "handleSimpleMessage: " + msgObj.getMsg());
-			publishObject(msgObj);
-		}
-
-		private void handleConnectToDatabaseResponse(ConnectToDatabaseResponse response)
-		{
-			Log.d(TAG, "handleConnectToDatabaseResponse: " + response);
-			Model.connectedToDatabase = response.getSuccess();
-			publishObject(response);
-		}
-
-		private void handleLoginResponse(LoginResponse response)
-		{
-			Log.d(TAG, "handleLoginResponse: " + response);
-			publishObject(response);
-		}
-
-		private void handleGetPlayerListResponse(GetPlayerListResponse response)
-		{
-			Log.d(TAG, "handleGetPlayerListResponse: " + response);
-			publishObject(response);
-			Log.d(TAG, "handleGetPlayerListResponse: player list: " + response.getPlayersCopy());
-		}
-
-		private void handleRequestToBecomeOpponent(SelectOpponentRequest request)
-		{
-			Log.d(TAG, "handleRequestToBecomeOpponent: " + request);
-			publishObject(request);
-			Log.d(TAG, "handleRequestToBecomeOpponent: YOU HAVE BEEN OFFERED TO BECOME AN OPPONENT OF: " + request.getSourceUsername());
-
-
-
-			// TODO: WE ARE AUTOMATICALLY ACCEPTING THE REQUEST HERE
-			Log.d(TAG, "handleRequestToBecomeOpponent: Model.connected: " + Model.connected);
-			Log.d(TAG, "handleRequestToBecomeOpponent: Model.loggedIn: " + Model.loggedIn);
-			Log.d(TAG, "handleRequestToBecomeOpponent: Model.userLogin.getUserName(): " + Model.userLogin.getUserName());
-			try
-			{
-				if (Model.connected && /*Model.loggedIn &&*/ Model.userLogin.getUserName() != null)
-				{
-					Log.d(TAG, "handleRequestToBecomeOpponent: accepting opponent request: " + Model.userLogin.getUserName());
-					SelectOpponentResponse response = new SelectOpponentResponse(true, Model.userLogin.getUserName(), request.getSourceUsername());
-					response.setRequestAccepted(true);	//TODO: roll into response obj params
-					sendOutgoingObject(response);
-				}
-			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-			}
-		}
-
-		private void handleSelectOpponentResponse(SelectOpponentResponse response)
-		{
-			Log.d(TAG, "handleSelectOpponentResponse: " + response);
-			publishObject(response);
-			if(response.getRequestAccepted() == true)
-			{
-				Log.d(TAG, "handleRequestToBecomeOpponent: REQUEST ACCEPTED! from: " + response.getSourceUsername());
-			}
-			else
-			{
-				Log.d(TAG, "handleRequestToBecomeOpponent: REQUEST REJECTED! from: " + response.getSourceUsername());
-			}
-		}
-
-		private void handleMessageFromOpponent(OpponentBoundMessage msgObj)
-		{
-			Log.d(TAG, "handleMessageFromOpponent: " + msgObj);
-			publishObject(msgObj);
-		}
-
-		/**
-		 * Store the most recent incoming message Object as a String in the Model, and use the AsyncTasks's onProgressUpdate to display it in the test UI.
-		 * This effectively displays incoming messages in the UI while the ServerTask thread is running.
-		 * @param obj
-		 */
-		private void publishObject(Object obj)
-		{
-			Model.incomingMessage = obj.toString();
-			publishProgress(1);
-		}
-
-
-		@Override
-		protected void onProgressUpdate(Integer... progress)
-		{
-			 Log.d(TAG, "onProgressUpdate");
-			updateUI();
-		}
-
-		@Override
-		protected void onPostExecute(Integer result)
-		{
-			String str = "onPostExecute: " + result;
-			Log.d(TAG, str);
-			updateUI();
-		}
 	} // end inner class ServerTask
 
 	/**

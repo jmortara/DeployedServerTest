@@ -80,7 +80,7 @@ public class DatabaseAsyncTask extends AsyncTask<Void, Integer, Integer>
 
 		Log.d(TAG, "doInBackground: dbProps? " + Model.databaseProps.toString());
 
-		int testSucceeded = 0;
+		int testSucceeded = 0;	// unused now
 
 		if (Model.databaseProps != null)
 		{

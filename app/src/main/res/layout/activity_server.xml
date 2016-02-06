@@ -20,37 +20,37 @@
             android:layout_height="60dp">
 
             <CheckBox
-                android:id="@+id/connectedCheckBox"
+                android:id="@+id/connectedToServerCheckBox"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:clickable="false"
                 />
 
             <Button
-                android:id="@+id/connectButton"
+                android:id="@+id/connectToServerButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Server\nConnect"
-                android:onClick="handleConnectButtonClick"
+                android:onClick="handleConnectToServerButtonClick"
                 />
 
             <CheckBox
-                android:id="@+id/databaseCheckBox"
+                android:id="@+id/connectedToDatabaseCheckBox"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:clickable="false"
                 />
 
             <Button
-                android:id="@+id/testDatabaseButton"
-                android:text="Test\nDB"
+                android:id="@+id/connectToDatabaseButton"
+                android:text="Connect\nto DB"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="handleTestDatabaseButtonClick"
+                android:onClick="handleConnectToDatabaseButtonClick"
                 />
 
             <CheckBox
-                android:id="@+id/loginCheckBox"
+                android:id="@+id/loggedInCheckBox"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:clickable="false"
@@ -88,10 +88,25 @@
                 />
 
             <TextView
-                android:id="@+id/userNameText"
-                android:text="(userName)"
+                android:id="@+id/usernameText"
+                android:text="(username)"
                 android:editable="false"
-                android:layout_width="match_parent"
+                android:layout_width="130dp"
+                android:layout_height="wrap_content"
+                />
+        <TextView
+                android:id="@+id/opponent"
+                android:text="Opponent:"
+                android:editable="false"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+
+            <TextView
+                android:id="@+id/opponentUsernameText"
+                android:text="(username)"
+                android:editable="false"
+                android:layout_width="130dp"
                 android:layout_height="wrap_content"
                 />
         </LinearLayout>
@@ -106,17 +121,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Outgoing Message"
+            android:text="Input text for behavior below."
             />
 
         <EditText
-            android:id="@+id/outgoingText"
-            android:text="Type your message here"
+            android:id="@+id/inputText"
+            android:text="Click to enter text."
             android:editable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minHeight="50dp"
-            android:onClick="handleOutgoingTextClick"
+            android:onClick="handleInputTextClick"
             />
 
         <LinearLayout
@@ -130,15 +145,15 @@
             android:text="Done"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="handleDoneButtonClick"
+            android:onClick="handleHideSoftKeyboardButtonClick"
             />
 
         <Button
-            android:id="@+id/clearButton"
+            android:id="@+id/clearInputButton"
             android:text="Clear"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="handleClearButtonClick"
+            android:onClick="handleClearInputTextButtonClick"
             />
     </LinearLayout>
 
@@ -162,44 +177,20 @@
             android:layout_gravity="center_horizontal">
 
             <Button
-                android:id="@+id/messageButton"
-                android:text="Msg"
+                android:id="@+id/sendMessageButton"
+                android:text="Send\nMsg"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="handleMessageButtonClick"
+                android:onClick="handleSendMessageButtonClick"
                 />
 
             <Button
-                android:id="@+id/echoButton"
-                android:text="Echo"
+                android:id="@+id/echoMessageButton"
+                android:text="Echo\nMsg"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="handleEchoButtonClick"
+                android:onClick="handleEchoMessageButtonClick"
                 />
-
-            <Button
-                android:id="@+id/setUsernameButton"
-                android:text="Set\nUsrnm"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="handleSetUsernameButtonClick"
-                />
-
-             <Button
-                android:id="@+id/getUsernameButton"
-                android:text="Get\nUsrnm"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="handleGetUsernameButtonClick"
-                />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal">
 
             <Button
                 android:id="@+id/getAllPlayersButton"
@@ -217,12 +208,44 @@
                 android:onClick="handleGetOpponentsButtonClick"
                 />
 
+            <!--Button
+				 android:id="@+id/setUsernameButton"
+				 android:text="Set\nUsrnm"
+				 android:layout_width="wrap_content"
+				 android:layout_height="wrap_content"
+				 android:onClick="handleSetUsernameButtonClick"
+				 />
+
+			  <Button
+				 android:id="@+id/getUsernameButton"
+				 android:text="Get\nUsrnm"
+				 android:layout_width="wrap_content"
+				 android:layout_height="wrap_content"
+				 android:onClick="handleGetUsernameButtonClick"
+				 /-->
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal">
+
             <Button
                 android:id="@+id/selectOpponentButton"
-                android:text="Select\nOppnts"
+                android:text="Select\nOppnt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="handleSelectOpponentButtonClick"
+                />
+
+            <Button
+                android:id="@+id/acceptOpponentButton"
+                android:text="Accept\nOppnt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="handleAcceptOpponentButtonClick"
                 />
 
             <Button
@@ -242,18 +265,39 @@
             android:layout_gravity="center_horizontal">
 
             <Button
-                android:id="@+id/button"
-                android:text="Send New\nScore"
+                android:id="@+id/startGameButton"
+                android:text="Start\nGame"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="handleSendNewScoreOfButtonClick"/>
+                android:onClick="handleStartGameButtonClick"/>
 
             <Button
+                android:id="@+id/sendMoveButton"
+                android:text="Send\nMove"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="handleSendMoveButtonClick"/>
+
+            <Button
+                android:id="@+id/sendScoreButton"
+                android:text="Send\nScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="handleSendScoreButtonClick"/>
+
+            <Button
+                android:id="@+id/endGameButton"
+                android:text="End\nGame"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="handleEndGameButtonClick"/>
+
+            <!--Button
                 android:id="@+id/testButton"
                 android:text="Login\nTest"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="handleLoginTestButtonClick"/>
+                android:onClick="handleLoginTestButtonClick"/-->
 
         </LinearLayout>
 
