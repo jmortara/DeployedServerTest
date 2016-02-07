@@ -2,8 +2,7 @@ package com.mortaramultimedia.deployedservertest;
 
 import android.util.Log;
 
-import com.mortaramultimedia.wordwolf.shared.messages.LoginRequest;
-import com.mortaramultimedia.wordwolf.shared.messages.SelectOpponentRequest;
+import com.mortaramultimedia.wordwolf.shared.messages.*;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -24,6 +23,7 @@ public class Model
 	public static String opponentUsername = null;
 	public static String incomingMessage = null;
 	public static SelectOpponentRequest selectOpponentRequest = null;
+	public static GameBoard gameBoard = null;
 
 	public static final String HOST = "wordwolfgame.com";	// WARNING - will connect to any site hosted on jasonmortara.com
 	public static final int PORT = 4001;

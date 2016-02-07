@@ -20,6 +20,9 @@ import com.mortaramultimedia.deployedservertest.database.DatabaseAsyncTask;
 import com.mortaramultimedia.deployedservertest.interfaces.IAsyncTaskCompleted;
 import com.mortaramultimedia.wordwolf.shared.constants.Constants;
 import com.mortaramultimedia.wordwolf.shared.messages.ConnectToDatabaseResponse;
+import com.mortaramultimedia.wordwolf.shared.messages.CreateGameRequest;
+import com.mortaramultimedia.wordwolf.shared.messages.CreateGameResponse;
+import com.mortaramultimedia.wordwolf.shared.messages.GameBoard;
 import com.mortaramultimedia.wordwolf.shared.messages.GetPlayerListRequest;
 import com.mortaramultimedia.wordwolf.shared.messages.GetPlayerListResponse;
 import com.mortaramultimedia.wordwolf.shared.messages.LoginResponse;
@@ -404,7 +407,11 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 	public void handleStartGameButtonClick(View view) throws IOException
 	{
-		Log.d(TAG, "handleStartGameButtonClick: BEHAVIOR TBD");	//TODO: add behavior
+		Log.d(TAG, "handleStartGameButtonClick: sending start game request...");
+		int rows = 5;
+		int cols = 5;
+		CreateGameRequest request = new CreateGameRequest(-1, Model.userLogin.getUserName(), "defaultGameType", rows, cols, false, -1, -1, Model.opponentUsername, 9000);
+		serverTask.sendOutgoingObject(request);
 	}
 
 	public void handleSendMoveButtonClick(View view) throws IOException
@@ -826,10 +833,10 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			/**
 			 * If receiving a CreateGameResponse...
 			 */
-			/*else if(obj instanceof CreateGameResponse)
+			else if(obj instanceof CreateGameResponse)
 			{
-				handleCreateGameResponse(((CreateGameResponse) obj), out);
-			}*/
+				handleCreateGameResponse(((CreateGameResponse) obj));
+			}
 
 
 		}
@@ -935,14 +942,14 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		{
 			Log.d(TAG, "handleSelectOpponentResponse: " + response);
 			publishObject(response);
-			if(response.getRequestAccepted() == true)
+			if(response.getRequestAccepted())
 			{
-				Log.d(TAG, "handleRequestToBecomeOpponent: REQUEST ACCEPTED! from: " + response.getSourceUsername());
-				Model.opponentUsername = response.getSourceUsername();
+				Log.d(TAG, "handleRequestToBecomeOpponent: REQUEST ACCEPTED! from: " + response.getSourceUserName());
+				Model.opponentUsername = response.getSourceUserName();
 			}
 			else
 			{
-				Log.d(TAG, "handleRequestToBecomeOpponent: REQUEST REJECTED! from: " + response.getSourceUsername());
+				Log.d(TAG, "handleRequestToBecomeOpponent: REQUEST REJECTED! from: " + response.getSourceUserName());
 			}
 		}
 
@@ -950,6 +957,19 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		{
 			Log.d(TAG, "handleMessageFromOpponent: " + msgObj);
 			publishObject(msgObj);
+		}
+
+		private void handleCreateGameResponse(CreateGameResponse response)
+		{
+			Log.d(TAG, "handleCreateGameResponse: " + response);
+			logGameBoard(response.getGameBoard());
+			Model.gameBoard = response.getGameBoard();
+		}
+
+		private void logGameBoard(GameBoard gameBoard)
+		{
+			Log.d(TAG, "logGameBoard: ");
+			gameBoard.printBoardData();
 		}
 
 		/**
