@@ -40,7 +40,7 @@ public class LoginAsyncTask extends AsyncTask<Void, Integer, Integer>
 	{
 		Log.d(TAG, "onPreExecute");
 		// called on thread init
-		if (Model.databaseProps == null)
+		if (Model.getDatabaseProps() == null)
 		{
 			readDatabaseProperties();
 		}
@@ -60,7 +60,7 @@ public class LoginAsyncTask extends AsyncTask<Void, Integer, Integer>
 			dbProps.load(in);
 
 			// store in Model
-			Model.databaseProps = dbProps;
+			Model.setDatabaseProps(dbProps);
 
 			// once props are loaded, test the db with the values defined therein
 			Log.d(TAG, "readDatabaseProperties: Properties read.");
@@ -80,11 +80,11 @@ public class LoginAsyncTask extends AsyncTask<Void, Integer, Integer>
 			android.os.Debug.waitForDebugger();
 		}
 
-		Log.d(TAG, "doInBackground: dbProps? " + Model.databaseProps.toString());
+		Log.d(TAG, "doInBackground: dbProps? " + Model.getDatabaseProps().toString());
 
 		int loginSucceeded = 0;
 
-		if (Model.databaseProps != null)
+		if (Model.getDatabaseProps() != null)
 		{
 			Log.d(TAG, "doInBackground: Attempting user login through server command");
 			try
@@ -94,7 +94,7 @@ public class LoginAsyncTask extends AsyncTask<Void, Integer, Integer>
 //				Model.userLogin = newLogin;
 //				loginSucceeded = MySQLAccessTester.attemptLogin();
 
-				LoginRequest loginRequest = Model.userLogin;
+				LoginRequest loginRequest = Model.getUserLogin();
 				Comm.out().writeObject(loginRequest);
 				Comm.out().flush();
 			}

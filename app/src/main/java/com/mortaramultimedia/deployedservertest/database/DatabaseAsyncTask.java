@@ -58,7 +58,7 @@ public class DatabaseAsyncTask extends AsyncTask<Void, Integer, Integer>
 			dbProps.load(in);
 
 			// store in Model
-			Model.databaseProps = dbProps;
+			Model.setDatabaseProps(dbProps);
 
 			// once props are loaded, test the db with the values defined therein
 			Log.d(TAG, "readDatabaseProperties: Properties read.");
@@ -78,11 +78,11 @@ public class DatabaseAsyncTask extends AsyncTask<Void, Integer, Integer>
 			android.os.Debug.waitForDebugger();
 		}
 
-		Log.d(TAG, "doInBackground: dbProps? " + Model.databaseProps.toString());
+		Log.d(TAG, "doInBackground: dbProps? " + Model.getDatabaseProps().toString());
 
 		int testSucceeded = 0;	// unused now
 
-		if (Model.databaseProps != null)
+		if (Model.getDatabaseProps() != null)
 		{
 			Log.d(TAG, "doInBackground: Attempting to test database");
 			try

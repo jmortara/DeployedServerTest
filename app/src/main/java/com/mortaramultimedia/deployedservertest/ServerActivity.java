@@ -88,7 +88,15 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_server);
 
-		// UI refs
+		createUIReferences();
+		updateUI();
+	}
+
+	/**
+	 * Create the needed references to buttons and UI elements.
+	 */
+	private void createUIReferences()
+	{
 		connectToServerButton 			= (Button)   findViewById(R.id.connectToServerButton);
 		connectedToServerCheckBox 		= (CheckBox) findViewById(R.id.connectedToServerCheckBox);
 		connectToDatabaseButton 		= (Button)   findViewById(R.id.connectToDatabaseButton);
@@ -114,8 +122,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		endGameButton 						= (Button)   findViewById(R.id.endGameButton);
 
 		incomingText 						= (TextView) findViewById(R.id.incomingText);
-
-		updateUI();
 	}
 
 	public void updateUI()
@@ -123,33 +129,33 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		Log.d(TAG, "updateUI");
 
 		// Server Connection UI
-		connectToServerButton.setClickable(!Model.connected);
-		connectedToServerCheckBox.setChecked(Model.connected);
-		if (Model.connected)
+		connectToServerButton.setClickable(!Model.getConnected());
+		connectedToServerCheckBox.setChecked(Model.getConnected());
+		if (Model.getConnected())
 		{
 			connectToServerButton.setText("Server\nOK");
 		}
 
 		// DB Connection UI
-		connectToDatabaseButton.setClickable(!Model.connectedToDatabase);
-		connectedToDatabaseCheckBox.setChecked(Model.connectedToDatabase);
-		if (Model.connectedToDatabase)
+		connectToDatabaseButton.setClickable(!Model.getConnectedToDatabase());
+		connectedToDatabaseCheckBox.setChecked(Model.getConnectedToDatabase());
+		if (Model.getConnectedToDatabase())
 		{
 			connectToDatabaseButton.setText("DB\nOK");
 		}
 
 		// Login UI
-		loginButton.setClickable(!Model.loggedIn);
-		loggedInCheckBox.setChecked(Model.loggedIn);
-		if (Model.loggedIn)
+		loginButton.setClickable(!Model.getLoggedIn());
+		loggedInCheckBox.setChecked(Model.getLoggedIn());
+		if (Model.getLoggedIn())
 		{
 			loginButton.setText("Logged\nIn");
 		}
 
 		// Login info
-		if (Model.userLogin != null)
+		if (Model.getUserLogin() != null)
 		{
-			String username = Model.userLogin.getUserName();
+			String username = Model.getUserLogin().getUserName();
 			if (username != null)
 			{
 				usernameText.setText(username);
@@ -157,13 +163,13 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		}
 
 		// Opponent info
-		if (Model.opponentUsername != null)
+		if (Model.getOpponentUsername() != null)
 		{
-			opponentUsernameText.setText(Model.opponentUsername);
+			opponentUsernameText.setText(Model.getOpponentUsername());
 		}
 
 		// Messages
-		incomingText.setText(Model.incomingMessage);
+		incomingText.setText(Model.getIncomingMessage());
 
 
 	}
@@ -200,13 +206,13 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	{
 		Log.d(TAG, "handleConnectToServerButtonClick");
 
-		if (Model.connected)
+		if (Model.getConnected())
 		{
 			Log.d(TAG, "handleConnectToServerButtonClick: already connected!");
 			return;
 		}
 		// Start network tasks separate from the main UI thread
-		if ( serverTask == null && !Model.connected )
+		if ( serverTask == null && !Model.getConnected() )
 		{
 			serverTask = new ServerTask( this );
 			serverTask.execute();
@@ -290,7 +296,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		hideSoftKeyboard();
 		String msg = inputText.getText().toString();
 		SimpleMessage msgObj = new SimpleMessage(msg, false);
-//		serverTask.sendOutgoingMessageWithPrefix(ECHO, msg);	// deprecated
 		serverTask.sendOutgoingObject(msgObj);
 	}
 
@@ -300,7 +305,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		hideSoftKeyboard();
 		String msg = inputText.getText().toString();
 		SimpleMessage msgObj = new SimpleMessage(msg, true);
-//		serverTask.sendOutgoingMessageWithPrefix(ECHO, msg);
 		serverTask.sendOutgoingObject(msgObj);
 	}
 
@@ -334,9 +338,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	{
 		Log.d(TAG, "handleGetOpponentsButtonClick: this button is not currently functional.");
 		hideSoftKeyboard();
-//		String msg = inputText.getText().toString();
-		//serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_PORTS, null );			// deprecated
-		//serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_USERNAMES, null );	// deprecated
 	}
 
 	public void handleSelectOpponentButtonClick(View view) throws IOException
@@ -344,9 +345,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		Log.d(TAG, "handleSelectOpponentButtonClick");
 		hideSoftKeyboard();
 		String msg = inputText.getText().toString();
-		//serverTask.sendOutgoingMessageWithPrefix( SELECT_OPPONENT_PORT, msg );
-//		serverTask.sendOutgoingMessageWithPrefix(SELECT_OPPONENT_USERNAME, msg);	// deprecated system
-		SelectOpponentRequest request = new SelectOpponentRequest(Model.userLogin.getUserName(), msg);
+		SelectOpponentRequest request = new SelectOpponentRequest(Model.getUserLogin().getUserName(), msg);
 		serverTask.sendOutgoingObject(request);
 	}
 
@@ -356,24 +355,24 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		hideSoftKeyboard();
 
 		// ignore if no request exists to respond to
-		if (Model.selectOpponentRequest == null)
+		if (Model.getSelectOpponentRequest() == null)
 		{
 			Log.d(TAG, "handleAcceptOpponentButtonClick: no SelectOpponentRequest has been received and stored. Ignoring.");
 			return;
 		}
 
-		Log.d(TAG, "handleRequestToBecomeOpponent: Model.connected: " + Model.connected);
-		Log.d(TAG, "handleRequestToBecomeOpponent: Model.loggedIn: " + Model.loggedIn);
-		Log.d(TAG, "handleRequestToBecomeOpponent: Model.userLogin.getUserName(): " + Model.userLogin.getUserName());
-		Log.d(TAG, "handleRequestToBecomeOpponent: Model.selectOpponentRequest: " + Model.selectOpponentRequest);
+		Log.d(TAG, "handleRequestToBecomeOpponent: Model.connected: " + Model.getConnected());
+		Log.d(TAG, "handleRequestToBecomeOpponent: Model.loggedIn: " + Model.getLoggedIn());
+		Log.d(TAG, "handleRequestToBecomeOpponent: Model.userLogin.getUserName(): " + Model.getUserLogin().getUserName());
+		Log.d(TAG, "handleRequestToBecomeOpponent: Model.selectOpponentRequest: " + Model.getSelectOpponentRequest());
 
 		SelectOpponentResponse response = null;
 		try
 		{
-			if (Model.connected && Model.loggedIn && Model.userLogin.getUserName() != null)
+			if (Model.getConnected() && Model.getLoggedIn() && Model.getUserLogin().getUserName() != null)
 			{
-				Log.d(TAG, "handleRequestToBecomeOpponent: accepting opponent request: " + Model.selectOpponentRequest);
-				response = new SelectOpponentResponse(true, Model.userLogin.getUserName(), Model.selectOpponentRequest.getSourceUsername());
+				Log.d(TAG, "handleRequestToBecomeOpponent: accepting opponent request: " + Model.getSelectOpponentRequest());
+				response = new SelectOpponentResponse(true, Model.getUserLogin().getUserName(), Model.getSelectOpponentRequest().getSourceUsername());
 				serverTask.sendOutgoingObject(response);
 			}
 		}
@@ -388,7 +387,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		Log.d(TAG, "handleMessageOpponentButtonClick");
 		hideSoftKeyboard();
 		String msg = inputText.getText().toString();
-		//serverTask.sendOutgoingMessageWithPrefix( GET_OPPONENT_USERNAMES, null );	// deprecated system
 		try
 		{
 			OpponentBoundMessage msgObj = new OpponentBoundMessage(msg, false);	// this constructor assumes the server handles figuring out who is the opponent for the msg destination
@@ -408,9 +406,9 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	public void handleStartGameButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleStartGameButtonClick: sending start game request...");
-		int rows = 5;
-		int cols = 5;
-		CreateGameRequest request = new CreateGameRequest(-1, Model.userLogin.getUserName(), "defaultGameType", rows, cols, false, -1, -1, Model.opponentUsername, 9000);
+		int rows = 5;	//TODO allow player selection of grid size
+		int cols = 5;	//TODO allow player selection of grid size
+		CreateGameRequest request = new CreateGameRequest(-1, Model.getUserLogin().getUserName(), "defaultGameType", rows, cols, false, -1, -1, Model.getOpponentUsername(), 9000);
 		serverTask.sendOutgoingObject(request);
 	}
 
@@ -432,12 +430,11 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		catch ( Error e )
 		{
 			// just substitute an incremented score if the conversion was invalid
-			newScore = Model.score + 1;
+			newScore = Model.getScore() + 1;
 		}
 
-		Model.score = newScore;
+		Model.setScore(newScore);
 
-		//serverTask.sendOutgoingMessageWithPrefix( SEND_NEW_CURRENT_SCORE, Model.score.toString() );	// deprecated
 		//TODO: add new Score update via writeObject()
 	}
 
@@ -472,39 +469,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			loginTask.execute();
 		}
 	}*/
-	/*
-	public void handleIncomingMessage( String msg )
-	{
-		Log.d(TAG, "handleIncomingMessage: " + msg);
-		incomingText.setText( "TEST" );
-	}
-	*/
-
-	/*public void handleLoginButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleLoginTestButtonClick: USING HARDCODE VALUES, NOT INPUT FIELD DATA");
-		hideSoftKeyboard();
-
-		LoginRequest testLoginRequest = new LoginRequest(2, "test2", "test2pass", "test2@wordwolfgame.com");
-		Model.userLogin = testLoginRequest;
-		serverTask.sendOutgoingObject(testLoginRequest);
-	}*/
-
-	/*public void handleSetUsernameButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleSetUsernameButtonClick");
-		hideSoftKeyboard();
-		String msg = inputText.getText().toString();
-		//serverTask.sendOutgoingMessageWithPrefix(SET_USERNAME, msg);
-	}*/
-
-	/*public void handleGetUsernameButtonClick(View view) throws IOException
-	{
-		Log.d(TAG, "handleGetUsernameButtonClick");
-		hideSoftKeyboard();
-		String msg = inputText.getText().toString();
-		//serverTask.sendOutgoingMessageWithPrefix(GET_USERNAME, null);
-	}*/
 
 	/****************************************************************************************
 	 * ServerTask - AsyncTask which handles server connections and messaging
@@ -513,8 +477,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	{
 		private ServerActivity serverActivity;
 		private Socket s;
-//		private PrintWriter s_out;
-//		private BufferedReader s_in;
 		private ObjectOutputStream s_objOut;
 		private ObjectInputStream s_objIn;
 
@@ -535,8 +497,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			}
 
 			s = new Socket();
-//			s_out = null;
-//			s_in = null;
 
 			try
 			{
@@ -550,7 +510,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				{
 					System.err.println("Don't know about host : " + Model.HOST);
 //					System.exit(1);	// exit app
-//					s_out.close();
 					try
 					{
 						s_objOut.close();
@@ -565,7 +524,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 					}
 					try
 					{
-//						s_in.close();
 						s_objIn.close();
 					}
 					catch(RuntimeException e3)
@@ -597,7 +555,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				}
 
 				// update Model with connection status
-				Model.connected = s.isConnected();
+				Model.setConnected(s.isConnected());
 
 				if ( s.isConnected() )
 				{
@@ -606,10 +564,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 					// create writer for socket
 					try
 					{
-//						if ( s_out == null )
-//						{
-//							s_out = new PrintWriter( s.getOutputStream(), true);
-//						}
 						if ( s_objOut == null )
 						{
 							s_objOut = new ObjectOutputStream(s.getOutputStream());
@@ -623,17 +577,12 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 					}
 
 					//Send initial message to server
-//					sendOutgoingMessageWithPrefix( ECHO, "Client says hello." );
 					SimpleMessage msgObj = new SimpleMessage(Constants.HELLO_SERVER, true);
 					sendOutgoingObject(msgObj);
 
-					//reader for socket
+					// Obj reader for socket
 					try
 					{
-//						if (s_in == null)
-//						{
-//							s_in = new BufferedReader(new InputStreamReader(s.getInputStream()));
-//						}
 						if (s_objIn == null)
 						{
 							s_objIn = new ObjectInputStream(s.getInputStream());
@@ -646,41 +595,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 						e.printStackTrace();
 					}
 
-
-
-					//Get response from server
-/*
-					String response;
-					if (s_in != null)
-					{
-						try
-						{
-							while ((response = s_in.readLine()) != null)
-							{
-								Log.d(TAG, "Server message: " + response );
-
-								Model.setIncomingMessage( response );
-
-								// UI updates, which require this special method to run from this thread
-								ServerActivity.this.runOnUiThread(new Runnable()
-								{
-									public void run()
-									{
-										updateUI();
-										incomingText.setText( Model.incomingMessage );
-									}
-								});
-							}
-						}
-						catch (IOException e)
-						{
-							e.printStackTrace();
-						}
-						return 2;
-					}
-*/
-
-					// obj response
+					// Get obj response from server
 					Object responseObj;
 					if(s_objIn != null)
 					{
@@ -713,13 +628,8 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			}
 
 
-
 			// other stuff? close?
 			Log.d(TAG, "Continuing...");
-//			if (s_out != null)
-//			{
-//				s_out.close();
-//			}
 			if (s_objOut != null)
 			{
 				try
@@ -732,17 +642,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				}
 			}
 
-//			if (s_in != null)
-//			{
-//				try
-//				{
-//					s_in.close();
-//				}
-//				catch (IOException e)
-//				{
-//					e.printStackTrace();
-//				}
-//			}
 			if (s_objIn != null)
 			{
 				try
@@ -831,35 +730,20 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				handleCreateNewAccountResponse(((CreateNewAccountResponse) obj), out);
 			}*/
 			/**
-			 * If receiving a CreateGameResponse...
+			 * If receiving a CreateGameResponse, create a GameBoard and distribute it to matched players.
 			 */
 			else if(obj instanceof CreateGameResponse)
 			{
 				handleCreateGameResponse(((CreateGameResponse) obj));
 			}
 
-
-		}
-
-		//TODO: use sendOutgoingObject instead
-		protected void sendMessage(String msg)
-		{
-			Log.d(TAG, "sendMessage: " + s.isConnected() + ", " + msg);
-//			Log.d(TAG, "sendMessage: " + s.isConnected() + ", " + s_out.toString());
-//			if ( s.isConnected() )
-//			{
-//				if (s_out != null)
-//				{
-//					s_out.println( msg );
-//				}
-//			}
 		}
 
 		public void sendOutgoingObject(Object obj)
 		{
 			Log.d(TAG, "sendOutgoingObject: " + obj);
 
-			if ( serverTask == null || !Model.connected )
+			if ( serverTask == null || !Model.getConnected() )
 			{
 				Log.d(TAG, "sendOutgoingObject: WARNING: not connected. Ignoring.");
 				return;
@@ -892,7 +776,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		private void handleConnectToDatabaseResponse(ConnectToDatabaseResponse response)
 		{
 			Log.d(TAG, "handleConnectToDatabaseResponse: " + response);
-			Model.connectedToDatabase = response.getSuccess();
+			Model.setConnectedToDatabase(response.getSuccess());
 			publishObject(response);
 		}
 
@@ -916,26 +800,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			Log.d(TAG, "handleRequestToBecomeOpponent: YOU HAVE BEEN OFFERED TO BECOME AN OPPONENT OF: " + request.getSourceUsername());
 
 			// store the request in the Model until it is accepted or rejected by the user
-			Model.selectOpponentRequest = request;
-
-			// TODO: WE ARE AUTOMATICALLY ACCEPTING THE REQUEST HERE
-			/*Log.d(TAG, "handleRequestToBecomeOpponent: Model.connected: " + Model.connected);
-			Log.d(TAG, "handleRequestToBecomeOpponent: Model.loggedIn: " + Model.loggedIn);
-			Log.d(TAG, "handleRequestToBecomeOpponent: Model.userLogin.getUserName(): " + Model.userLogin.getUserName());
-			try
-			{
-				if (Model.connected && *//*Model.loggedIn &&*//* Model.userLogin.getUserName() != null)
-				{
-					Log.d(TAG, "handleRequestToBecomeOpponent: accepting opponent request: " + Model.userLogin.getUserName());
-					SelectOpponentResponse response = new SelectOpponentResponse(true, Model.userLogin.getUserName(), request.getSourceUsername());
-					response.setRequestAccepted(true);	//TODO: roll into response obj params
-					sendOutgoingObject(response);
-				}
-			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-			}*/
+			Model.setSelectOpponentRequest(request);
 		}
 
 		private void handleSelectOpponentResponse(SelectOpponentResponse response)
@@ -945,7 +810,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			if(response.getRequestAccepted())
 			{
 				Log.d(TAG, "handleRequestToBecomeOpponent: REQUEST ACCEPTED! from: " + response.getSourceUserName());
-				Model.opponentUsername = response.getSourceUserName();
+				Model.setOpponentUsername(response.getSourceUserName());
 			}
 			else
 			{
@@ -962,8 +827,10 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		private void handleCreateGameResponse(CreateGameResponse response)
 		{
 			Log.d(TAG, "handleCreateGameResponse: " + response);
-			logGameBoard(response.getGameBoard());
-			Model.gameBoard = response.getGameBoard();
+			GameBoard gameBoard = response.getGameBoard();
+			publishObject(gameBoard);
+			logGameBoard(gameBoard);
+			Model.setGameBoard(gameBoard);
 		}
 
 		private void logGameBoard(GameBoard gameBoard)
@@ -979,7 +846,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		 */
 		private void publishObject(Object obj)
 		{
-			Model.incomingMessage = obj.toString();
+			Model.setIncomingMessage(obj.toString());
 			publishProgress(1);
 		}
 
@@ -999,85 +866,6 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			updateUI();
 		}
 
-		/*
-		public void sendOutgoingMessageWithPrefix( String prefix, String msg )
-		{
-			Log.d(TAG, "sendOutgoingMessageWithPrefix: Response from user: " + prefix + ", " + msg);
-
-			String completeMessageToServer = "";
-
-			if ( serverTask == null || !Model.connected )
-			{
-				Log.d(TAG, "sendOutgoingMessageWithPrefix: not connected");
-				return;
-			}
-
-			// if connected (switch statement was not allowed by Java compiler for some reason)
-			else
-			{
-				if ( prefix.equals( ECHO ) )
-				{
-					completeMessageToServer = prefix + msg;
-				}
-				else if ( prefix.equals( SET_USERNAME ) )
-				{
-					completeMessageToServer = prefix + msg;
-				}
-				else if ( prefix.equals( GET_USERNAME ) )
-				{
-					completeMessageToServer = prefix;
-				}
-				else if ( prefix.equals( GET_OPPONENT_USERNAMES ) )
-				{
-					completeMessageToServer = prefix;
-				}
-				else if ( prefix.equals( SELECT_OPPONENT_USERNAME ) )
-				{
-					completeMessageToServer = prefix + msg;
-				}
-
-				else if ( prefix.equals( GET_OPPONENT_PORTS ) )
-				{
-					completeMessageToServer = prefix;
-				}
-				else if ( prefix.equals( MESSAGE_PLAYER_PORT ) )			//TODO: won't work. need multiple input fields to handle this case
-				{
-					completeMessageToServer = "";							// ex: 'messagePlayer_port_1234:hello other player'
-				}
-				else if ( prefix.equals( SELECT_OPPONENT_PORT ) )
-				{
-					completeMessageToServer = prefix + msg + ":";			// ex: 'selectOpponent_port_12345:'
-				}
-
-				else if ( prefix.equals( MESSAGE_OPPONENT ) )
-				{
-					completeMessageToServer = prefix + msg;					// ex: 'messageOpponent:hello'
-				}
-				else if ( prefix.equals( SEND_NEW_CURRENT_SCORE ) )
-				{
-					completeMessageToServer = prefix + msg;					// ex: 'sendNewCurrentScore:12'
-				}
-				else
-				{
-					Log.w( TAG, "sendOutgoingMessageWithPrefix: WARNING - unknown prefix. request was: "  + prefix + ", " + msg );
-					return;
-				}
-
-				Log.d( TAG, "sendOutgoingMessageWithPrefix: completeMessageToServer: " + completeMessageToServer );
-
-				// send the complete assembled message to the server
-//				if ( s.isConnected() && completeMessageToServer.length() > 0 )
-//				{
-//					if (s_out != null)
-//					{
-//						s_out.println( completeMessageToServer );
-//					}
-//				}
-			}
-
-		}
-		*/
-
 	} // end inner class ServerTask
 
 	/**
@@ -1090,12 +878,12 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		if(requestCode == 1)	// see the note in the startActivityForResult above
 		{
 			Log.d(TAG, "onActivityResult: LOGIN SUCCESS returned from LoginActivity. requestCode: " + requestCode);
-			Model.loggedIn = true;
+			Model.setLoggedIn(true);
 		}
 		else
 		{
 			Log.d(TAG, "onActivityResult: LOGIN FAILURE returned from LoginActivity. requestCode: " + requestCode);
-			Model.loggedIn = false;
+			Model.setLoggedIn(false);
 		}
 		updateUI();
 	}

@@ -208,7 +208,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
 		{
 			// store the login credentials in the Model
 			LoginRequest loginRequest = new LoginRequest(1, username, password, email);
-			Model.userLogin = loginRequest;
+			Model.setUserLogin(loginRequest);
 
 			// Show a progress spinner,
 			showProgress(true);
@@ -371,7 +371,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
 		Intent returnIntent = new Intent();
 		int resultCode;
 
-		if(Model.loggedIn)
+		if(Model.getLoggedIn())
 		{
 			resultCode = 1;
 			Log.d(TAG, "onTaskCompleted successful with result code: " + resultCode);
