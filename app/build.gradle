@@ -27,4 +27,5 @@ dependencies {
     // added by jm
     // added by jm
     compile files('libs/wordwolf_shared_objects.jar')
+    compile 'com.google.android.gms:play-services-appindexing:8.1.0'
 }

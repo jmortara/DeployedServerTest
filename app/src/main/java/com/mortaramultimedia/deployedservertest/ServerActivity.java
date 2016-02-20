@@ -3,9 +3,11 @@ package com.mortaramultimedia.deployedservertest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Debug;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -14,6 +16,9 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.mortaramultimedia.deployedservertest.communications.Comm;
 import com.mortaramultimedia.deployedservertest.database.LoginAsyncTask;
 import com.mortaramultimedia.deployedservertest.database.DatabaseAsyncTask;
@@ -23,6 +28,9 @@ import com.mortaramultimedia.wordwolf.shared.messages.ConnectToDatabaseResponse;
 import com.mortaramultimedia.wordwolf.shared.messages.CreateGameRequest;
 import com.mortaramultimedia.wordwolf.shared.messages.CreateGameResponse;
 import com.mortaramultimedia.wordwolf.shared.messages.GameBoard;
+import com.mortaramultimedia.wordwolf.shared.messages.GameMove;
+import com.mortaramultimedia.wordwolf.shared.messages.GameMoveRequest;
+import com.mortaramultimedia.wordwolf.shared.messages.GameMoveResponse;
 import com.mortaramultimedia.wordwolf.shared.messages.GetPlayerListRequest;
 import com.mortaramultimedia.wordwolf.shared.messages.GetPlayerListResponse;
 import com.mortaramultimedia.wordwolf.shared.messages.LoginResponse;
@@ -30,6 +38,7 @@ import com.mortaramultimedia.wordwolf.shared.messages.OpponentBoundMessage;
 import com.mortaramultimedia.wordwolf.shared.messages.SelectOpponentRequest;
 import com.mortaramultimedia.wordwolf.shared.messages.SelectOpponentResponse;
 import com.mortaramultimedia.wordwolf.shared.messages.SimpleMessage;
+import com.mortaramultimedia.wordwolf.shared.messages.TileData;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -37,15 +46,17 @@ import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class ServerActivity extends Activity implements IAsyncTaskCompleted
 {
 	private static final String TAG = "ServerActivity";
 
-	private ServerTask serverTask;				// inner async task which handles in/out socket streams
-	private DatabaseAsyncTask databaseTask;	// external async task
-	private LoginAsyncTask loginTask;			// external async task
+	private ServerTask serverTask;            // inner async task which handles in/out socket streams
+	private DatabaseAsyncTask databaseTask;   // external async task
+	private LoginAsyncTask loginTask;         // external async task
 
 	// connection, database and login View references
 	private Button connectToServerButton;
@@ -79,7 +90,11 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 	// incoming objects/messages text refs
 	private TextView incomingText;
-
+	/**
+	 * ATTENTION: This was auto-generated to implement the App Indexing API.
+	 * See https://g.co/AppIndexing/AndroidStudio for more information.
+	 */
+	private GoogleApiClient client;
 
 
 	@Override
@@ -90,6 +105,9 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 		createUIReferences();
 		updateUI();
+		// ATTENTION: This was auto-generated to implement the App Indexing API.
+		// See https://g.co/AppIndexing/AndroidStudio for more information.
+		client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 	}
 
 	/**
@@ -97,31 +115,31 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	 */
 	private void createUIReferences()
 	{
-		connectToServerButton 			= (Button)   findViewById(R.id.connectToServerButton);
-		connectedToServerCheckBox 		= (CheckBox) findViewById(R.id.connectedToServerCheckBox);
-		connectToDatabaseButton 		= (Button)   findViewById(R.id.connectToDatabaseButton);
-		connectedToDatabaseCheckBox 	= (CheckBox) findViewById(R.id.connectedToDatabaseCheckBox);
-		loginButton 						= (Button)   findViewById(R.id.loginButton);
-		loggedInCheckBox 					= (CheckBox) findViewById(R.id.loggedInCheckBox);
+		connectToServerButton = (Button) findViewById(R.id.connectToServerButton);
+		connectedToServerCheckBox = (CheckBox) findViewById(R.id.connectedToServerCheckBox);
+		connectToDatabaseButton = (Button) findViewById(R.id.connectToDatabaseButton);
+		connectedToDatabaseCheckBox = (CheckBox) findViewById(R.id.connectedToDatabaseCheckBox);
+		loginButton = (Button) findViewById(R.id.loginButton);
+		loggedInCheckBox = (CheckBox) findViewById(R.id.loggedInCheckBox);
 
-		usernameText 						= (TextView) findViewById(R.id.usernameText);
-		opponentUsernameText 			= (TextView) findViewById(R.id.opponentUsernameText);
+		usernameText = (TextView) findViewById(R.id.usernameText);
+		opponentUsernameText = (TextView) findViewById(R.id.opponentUsernameText);
 
-		inputText 							= (EditText) findViewById(R.id.inputText);
-		hideKeyboardButton 				= (Button)   findViewById(R.id.hideKeyboardButton);
-		clearInputButton					= (Button)   findViewById(R.id.clearInputButton);
+		inputText = (EditText) findViewById(R.id.inputText);
+		hideKeyboardButton = (Button) findViewById(R.id.hideKeyboardButton);
+		clearInputButton = (Button) findViewById(R.id.clearInputButton);
 
-		getAllPlayersButton				= (Button)   findViewById(R.id.getAllPlayersButton);
-		getOpponentsButton 				= (Button)   findViewById(R.id.getOpponentsButton);
-		selectOpponentButton 			= (Button)   findViewById(R.id.selectOpponentButton);
-		acceptOpponentButton 			= (Button)   findViewById(R.id.acceptOpponentButton);
+		getAllPlayersButton = (Button) findViewById(R.id.getAllPlayersButton);
+		getOpponentsButton = (Button) findViewById(R.id.getOpponentsButton);
+		selectOpponentButton = (Button) findViewById(R.id.selectOpponentButton);
+		acceptOpponentButton = (Button) findViewById(R.id.acceptOpponentButton);
 
-		startGameButton 					= (Button)   findViewById(R.id.startGameButton);
-		sendMoveButton 					= (Button)   findViewById(R.id.sendMoveButton);
-		sendScoreButton 					= (Button)   findViewById(R.id.sendScoreButton);
-		endGameButton 						= (Button)   findViewById(R.id.endGameButton);
+		startGameButton = (Button) findViewById(R.id.startGameButton);
+		sendMoveButton = (Button) findViewById(R.id.sendMoveButton);
+		sendScoreButton = (Button) findViewById(R.id.sendScoreButton);
+		endGameButton = (Button) findViewById(R.id.endGameButton);
 
-		incomingText 						= (TextView) findViewById(R.id.incomingText);
+		incomingText = (TextView) findViewById(R.id.incomingText);
 	}
 
 	public void updateUI()
@@ -197,8 +215,10 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 	////////////////////////////////////////////////////////
 	// Server connection, Database Connection, and Login
+
 	/**
 	 * Connect to the WordWolf server.
+	 *
 	 * @param view
 	 * @throws IOException
 	 */
@@ -212,9 +232,9 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			return;
 		}
 		// Start network tasks separate from the main UI thread
-		if ( serverTask == null && !Model.getConnected() )
+		if (serverTask == null && !Model.getConnected())
 		{
-			serverTask = new ServerTask( this );
+			serverTask = new ServerTask(this);
 			serverTask.execute();
 		}
 		else
@@ -225,6 +245,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 	/**
 	 * Connect to the WordWolf database.
+	 *
 	 * @param view
 	 * @throws IOException
 	 */
@@ -234,7 +255,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		databaseTask = new DatabaseAsyncTask(this, this);
 
 		// workaround for issues with execute() not working properly on AsyncTasks
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
 		{
 			databaseTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 		}
@@ -246,6 +267,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 	/**
 	 * Login Button handler - launches LoginActivity
+	 *
 	 * @param view
 	 * @throws IOException
 	 */
@@ -256,10 +278,10 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		// create an Intent, with optional additional params
 		Context thisContext = ServerActivity.this;
 		Intent intent = new Intent(thisContext, LoginActivity.class);
-		intent.putExtra("testParam", "testValue");								//optional params
+		intent.putExtra("testParam", "testValue");                        //optional params
 
 		// start the activity
-		startActivityForResult(intent, 1);		//TODO: note that in order for this class' onActivityResult to be called when the LoginActivity has completed, the requestCode here must be > 0
+		startActivityForResult(intent, 1);      //TODO: note that in order for this class' onActivityResult to be called when the LoginActivity has completed, the requestCode here must be > 0
 	}
 
 
@@ -317,7 +339,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	private void hideSoftKeyboard()
 	{
 		Log.d(TAG, "hideSoftKeyboard");
-		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 		imm.hideSoftInputFromWindow(inputText.getWindowToken(), 0);
 	}
 
@@ -376,7 +398,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				serverTask.sendOutgoingObject(response);
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			e.printStackTrace();
 		}
@@ -389,10 +411,10 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		String msg = inputText.getText().toString();
 		try
 		{
-			OpponentBoundMessage msgObj = new OpponentBoundMessage(msg, false);	// this constructor assumes the server handles figuring out who is the opponent for the msg destination
+			OpponentBoundMessage msgObj = new OpponentBoundMessage(msg, false);   // this constructor assumes the server handles figuring out who is the opponent for the msg destination
 			serverTask.sendOutgoingObject(msgObj);
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			e.printStackTrace();
 		}
@@ -406,15 +428,20 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	public void handleStartGameButtonClick(View view) throws IOException
 	{
 		Log.d(TAG, "handleStartGameButtonClick: sending start game request...");
-		int rows = 5;	//TODO allow player selection of grid size
-		int cols = 5;	//TODO allow player selection of grid size
+		int rows = 5;   //TODO allow player selection of grid size
+		int cols = 5;   //TODO allow player selection of grid size
 		CreateGameRequest request = new CreateGameRequest(-1, Model.getUserLogin().getUserName(), "defaultGameType", rows, cols, false, -1, -1, Model.getOpponentUsername(), 9000);
 		serverTask.sendOutgoingObject(request);
 	}
 
 	public void handleSendMoveButtonClick(View view) throws IOException
 	{
-		Log.d(TAG, "handleSendMoveButtonClick: BEHAVIOR TBD");	//TODO: add behavior
+		Log.d(TAG, "handleSendMoveButtonClick: Sumbitting a generated move...");
+
+		// generate a fake, unophisticated GameMove and send it in a request, without client validation.
+		GameMove gameMove = getGeneratedGameMove();
+		GameMoveRequest request = new GameMoveRequest(Model.getUserLogin().getUserName(), -1, gameMove);
+		serverTask.sendOutgoingObject(request);
 	}
 
 	public void handleSendScoreButtonClick(View view) throws IOException
@@ -425,9 +452,9 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		Integer newScore;
 		try
 		{
-			newScore = Integer.parseInt( msg );
+			newScore = Integer.parseInt(msg);
 		}
-		catch ( Error e )
+		catch (Error e)
 		{
 			// just substitute an incremented score if the conversion was invalid
 			newScore = Model.getScore() + 1;
@@ -440,7 +467,84 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 	private void handleEndGameButtonClick()
 	{
-		Log.d(TAG, "handleEndGameButtonClick: BEHAVIOR TBD");	//TODO: add behavior
+		Log.d(TAG, "handleEndGameButtonClick: BEHAVIOR TBD");   //TODO: add behavior
+	}
+
+	/**
+	 * Generates a hardcoded GameMove for testing purposes.
+	 * @return
+	 */
+	private GameMove getGeneratedGameMove()
+	{
+		TileData td;
+
+		// change to custom board
+		char a = ("A").charAt(0);
+		char d = ("D").charAt(0);
+		char e = ("E").charAt(0);
+		char i = ("I").charAt(0);
+		char t = ("T").charAt(0);
+		char o = ("I").charAt(0);
+		char n = ("N").charAt(0);
+
+		// build move
+		TileData td0 = new TileData(0, 0, a, false);
+		TileData td1 = new TileData(0, 1, d, false);
+		TileData td2 = new TileData(1, 1, d, false);
+		TileData td3 = new TileData(2, 1, e, false);
+		TileData td4 = new TileData(2, 2, d, false);
+
+		List<TileData> move = new ArrayList<TileData>();
+		move.add(td0);
+		move.add(td1);
+		move.add(td2);
+		move.add(td3);
+		move.add(td4);
+
+		GameMove gameMove = new GameMove(move);
+		return gameMove;
+	}
+
+	@Override
+	public void onStart()
+	{
+		super.onStart();
+
+		// ATTENTION: This was auto-generated to implement the App Indexing API.
+		// See https://g.co/AppIndexing/AndroidStudio for more information.
+		client.connect();
+		Action viewAction = Action.newAction(
+				  Action.TYPE_VIEW, // TODO: choose an action type.
+				  "Server Page", // TODO: Define a title for the content shown.
+				  // TODO: If you have web page content that matches this app activity's content,
+				  // make sure this auto-generated web page URL is correct.
+				  // Otherwise, set the URL to null.
+				  Uri.parse("http://host/path"),
+				  // TODO: Make sure this auto-generated app deep link URI is correct.
+				  Uri.parse("android-app://com.mortaramultimedia.deployedservertest/http/host/path")
+		);
+		AppIndex.AppIndexApi.start(client, viewAction);
+	}
+
+	@Override
+	public void onStop()
+	{
+		super.onStop();
+
+		// ATTENTION: This was auto-generated to implement the App Indexing API.
+		// See https://g.co/AppIndexing/AndroidStudio for more information.
+		Action viewAction = Action.newAction(
+				  Action.TYPE_VIEW, // TODO: choose an action type.
+				  "Server Page", // TODO: Define a title for the content shown.
+				  // TODO: If you have web page content that matches this app activity's content,
+				  // make sure this auto-generated web page URL is correct.
+				  // Otherwise, set the URL to null.
+				  Uri.parse("http://host/path"),
+				  // TODO: Make sure this auto-generated app deep link URI is correct.
+				  Uri.parse("android-app://com.mortaramultimedia.deployedservertest/http/host/path")
+		);
+		AppIndex.AppIndexApi.end(client, viewAction);
+		client.disconnect();
 	}
 
 
@@ -481,7 +585,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		private ObjectInputStream s_objIn;
 
 		// constructor
-		ServerTask( ServerActivity sa )
+		ServerTask(ServerActivity sa)
 		{
 			Log.d(TAG, "ServerTask constructor");
 			this.serverActivity = sa;
@@ -491,9 +595,9 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		protected Integer doInBackground(Void... unused)
 		{
 			// need to force wait for debugger to breakpoint in this thread
-			if(android.os.Debug.isDebuggerConnected())
+			if (Debug.isDebuggerConnected())
 			{
-				android.os.Debug.waitForDebugger();
+				Debug.waitForDebugger();
 			}
 
 			s = new Socket();
@@ -503,7 +607,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				Log.d(TAG, "Attempting to connect to " + Model.HOST + " " + Model.PORT);
 				try
 				{
-					s.connect(new InetSocketAddress( Model.HOST, Model.PORT ));
+					s.connect(new InetSocketAddress(Model.HOST, Model.PORT));
 				}
 				//Host not found
 				catch (UnknownHostException e)
@@ -514,7 +618,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 					{
 						s_objOut.close();
 					}
-					catch(RuntimeException e2)
+					catch (RuntimeException e2)
 					{
 						System.err.println("Object output stream may be null or unavailable to close.");
 					}
@@ -526,7 +630,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 					{
 						s_objIn.close();
 					}
-					catch(RuntimeException e3)
+					catch (RuntimeException e3)
 					{
 						System.err.println("Object input stream may be null or unavailable to close.");
 					}
@@ -557,14 +661,14 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				// update Model with connection status
 				Model.setConnected(s.isConnected());
 
-				if ( s.isConnected() )
+				if (s.isConnected())
 				{
 					Log.d(TAG, "Connected to wwss.");
 
 					// create writer for socket
 					try
 					{
-						if ( s_objOut == null )
+						if (s_objOut == null)
 						{
 							s_objOut = new ObjectOutputStream(s.getOutputStream());
 							Comm.setOut(s_objOut);
@@ -586,7 +690,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 						if (s_objIn == null)
 						{
 							s_objIn = new ObjectInputStream(s.getInputStream());
-							Comm.setIn(s_objIn);	// create reference for other classes to use
+							Comm.setIn(s_objIn);   // create reference for other classes to use
 							Log.d(TAG, "Created ObjectInputStream.");
 						}
 					}
@@ -597,19 +701,19 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 					// Get obj response from server
 					Object responseObj;
-					if(s_objIn != null)
+					if (s_objIn != null)
 					{
 						try
 						{
 							while ((responseObj = s_objIn.readObject()) != null)
 							{
-								Log.d(TAG, "Server response obj: " + responseObj );
+								Log.d(TAG, "Server response obj: " + responseObj);
 								//Model.setIncomingMessageObj(responseObj);
 								//TODO: FILL IN RESPONSE HANDLING
 								handleIncomingObject(responseObj);
 							}
 						}
-						catch(IOException | ClassNotFoundException e)
+						catch (IOException | ClassNotFoundException e)
 						{
 							e.printStackTrace();
 						}
@@ -648,7 +752,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 				{
 					s_objIn.close();
 				}
-				catch(IOException e)
+				catch (IOException e)
 				{
 					e.printStackTrace();
 				}
@@ -667,6 +771,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 
 		/**
 		 * Handle all incoming object types.
+		 *
 		 * @param obj
 		 */
 		private void handleIncomingObject(Object obj)
@@ -676,49 +781,49 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			/**
 			 * If receiving a SimpleMessage, log the message. If echo was requested, send it back to the client as well.
 			 */
-			if(obj instanceof SimpleMessage)
+			if (obj instanceof SimpleMessage)
 			{
 				handleSimpleMessage(((SimpleMessage) obj));
 			}
 			/**
 			 * If receiving a ConnectToDatabaseResponse, if it is a successful one, that means we can then attempt a login or create account.
 			 */
-			if(obj instanceof ConnectToDatabaseResponse)
+			if (obj instanceof ConnectToDatabaseResponse)
 			{
 				handleConnectToDatabaseResponse(((ConnectToDatabaseResponse) obj));
 			}
 			/**
 			 * If receiving a LoginResponse...
 			 */
-			else if(obj instanceof LoginResponse)
+			else if (obj instanceof LoginResponse)
 			{
 				handleLoginResponse(((LoginResponse) obj));
 			}
 			/**
 			 * If receiving a GetPlayerListResponse
 			 */
-			else if(obj instanceof GetPlayerListResponse)
+			else if (obj instanceof GetPlayerListResponse)
 			{
 				handleGetPlayerListResponse(((GetPlayerListResponse) obj));
 			}
 			/**
 			 * If receiving a SelectOpponentRequest, which is a request from another player to become opponents.
 			 */
-			else if(obj instanceof SelectOpponentRequest)
+			else if (obj instanceof SelectOpponentRequest)
 			{
 				handleRequestToBecomeOpponent(((SelectOpponentRequest) obj));
 			}
 			/**
 			 * If receiving a SelectOpponentResponse, which is a response to a request to become another player's opponent.
 			 */
-			else if(obj instanceof SelectOpponentResponse)
+			else if (obj instanceof SelectOpponentResponse)
 			{
 				handleSelectOpponentResponse(((SelectOpponentResponse) obj));
 			}
 			/**
 			 * If receiving an OpponentBoundMessage, which is a message to this client from this player's opponent.
 			 */
-			else if(obj instanceof OpponentBoundMessage)
+			else if (obj instanceof OpponentBoundMessage)
 			{
 				handleMessageFromOpponent(((OpponentBoundMessage) obj));
 			}
@@ -732,9 +837,17 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			/**
 			 * If receiving a CreateGameResponse, create a GameBoard and distribute it to matched players.
 			 */
-			else if(obj instanceof CreateGameResponse)
+			else if (obj instanceof CreateGameResponse)
 			{
 				handleCreateGameResponse(((CreateGameResponse) obj));
+			}
+
+			/**
+			 * If receiving a GameMoveResponse, if the response is invalid, ignore it. If valid, add the score it contains.
+			 */
+			else if (obj instanceof GameMoveResponse)
+			{
+				handleGameMoveResponse(((GameMoveResponse) obj));
 			}
 
 		}
@@ -743,14 +856,14 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		{
 			Log.d(TAG, "sendOutgoingObject: " + obj);
 
-			if ( serverTask == null || !Model.getConnected() )
+			if (serverTask == null || !Model.getConnected())
 			{
 				Log.d(TAG, "sendOutgoingObject: WARNING: not connected. Ignoring.");
 				return;
 			}
 
 			// send it to the server
-			if ( s.isConnected() && obj != null )
+			if (s.isConnected() && obj != null)
 			{
 				if (s_objOut != null)
 				{
@@ -807,7 +920,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		{
 			Log.d(TAG, "handleSelectOpponentResponse: " + response);
 			publishObject(response);
-			if(response.getRequestAccepted())
+			if (response.getRequestAccepted())
 			{
 				Log.d(TAG, "handleRequestToBecomeOpponent: REQUEST ACCEPTED! from: " + response.getSourceUserName());
 				Model.setOpponentUsername(response.getSourceUserName());
@@ -833,6 +946,25 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 			Model.setGameBoard(gameBoard);
 		}
 
+		private void handleGameMoveResponse(GameMoveResponse response)
+		{
+			Log.d(TAG, "handleGameMoveResponse: " + response);
+			publishObject(response);
+
+			// if the response was for an accepted move request, add the score to the player's score
+			if(response.getRequestAccepted())
+			{
+				int movePointsAwarded = response.getPointsAwarded();
+				Model.setScore(Model.getScore() + movePointsAwarded);
+				Log.d(TAG, "handleGameMoveResponse: move accepted. New score: " + Model.getScore());
+				updateUI();
+			}
+			else
+			{
+				Log.d(TAG, "handleGameMoveResponse: WARNING: submitted move was not accepted by server.");
+			}
+		}
+
 		private void logGameBoard(GameBoard gameBoard)
 		{
 			Log.d(TAG, "logGameBoard: ");
@@ -842,6 +974,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		/**
 		 * Store the most recent incoming message Object as a String in the Model, and use the AsyncTasks's onProgressUpdate to display it in the test UI.
 		 * This effectively displays incoming messages in the UI while the ServerTask thread is running.
+		 *
 		 * @param obj
 		 */
 		private void publishObject(Object obj)
@@ -854,7 +987,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 		@Override
 		protected void onProgressUpdate(Integer... progress)
 		{
-			 Log.d(TAG, "onProgressUpdate");
+			Log.d(TAG, "onProgressUpdate");
 			updateUI();
 		}
 
@@ -875,7 +1008,7 @@ public class ServerActivity extends Activity implements IAsyncTaskCompleted
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent)
 	{
-		if(requestCode == 1)	// see the note in the startActivityForResult above
+		if (requestCode == 1)   // see the note in the startActivityForResult above
 		{
 			Log.d(TAG, "onActivityResult: LOGIN SUCCESS returned from LoginActivity. requestCode: " + requestCode);
 			Model.setLoggedIn(true);
